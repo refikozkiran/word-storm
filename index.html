@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌪️ WordStorm</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a12; --surface:#13131f; --card:#1a1a2e; --border:#2a2a4a;
+    --cyan:#00e5ff; --magenta:#ff00aa; --yellow:#ffe600;
+    --green:#00ff88; --red:#ff3355; --text:#e8e8f0; --muted:#6666aa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--text); font-family:'Nunito',sans-serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 15%, rgba(0,229,255,0.08) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 45% at 85% 85%, rgba(255,0,170,0.08) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 30% at 80% 15%, rgba(255,230,0,0.04) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+  .wrap { position:relative; z-index:1; width:100%; max-width:540px; padding:14px 16px; }
+
+  /* ── HEADER ── */
+  header { text-align:center; padding:16px 0 8px; }
+  .brand-mark {
+    position:relative; width:94px; height:94px; margin:0 auto 6px;
+    display:flex; align-items:center; justify-content:center;
+    filter:drop-shadow(0 0 18px rgba(0,229,255,0.35));
+  }
+  .storm-core {
+    width:50px; height:50px; border-radius:50%; position:relative;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.95) 0 8%, transparent 9%),
+      conic-gradient(from 25deg, var(--cyan), var(--magenta), var(--yellow), var(--cyan));
+    mask:radial-gradient(circle, transparent 0 21%, #000 22% 68%, transparent 69%);
+    -webkit-mask:radial-gradient(circle, transparent 0 21%, #000 22% 68%, transparent 69%);
+    animation:stormSpin 4s linear infinite;
+  }
+  .storm-core::before, .storm-core::after {
+    content:''; position:absolute; inset:6px; border-radius:50%;
+    border:4px solid transparent; border-top-color:#fff; border-right-color:rgba(255,255,255,.55);
+  }
+  .storm-core::after { inset:15px; transform:rotate(120deg); border-top-color:var(--yellow); border-right-color:rgba(255,230,0,.4); }
+  .orbit-letters { position:absolute; inset:0; animation:letterOrbit 9s linear infinite; }
+  .orbit-letters span {
+    position:absolute; left:50%; top:50%; width:25px; height:25px; margin:-12.5px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:9px; background:rgba(26,26,46,.88); border:1px solid rgba(0,229,255,.34);
+    color:#fff; font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:.5px;
+    box-shadow:0 0 14px rgba(0,229,255,.18);
+  }
+  .orbit-letters span:nth-child(1){ transform:rotate(0deg) translateX(42px) rotate(0deg); color:var(--cyan); }
+  .orbit-letters span:nth-child(2){ transform:rotate(40deg) translateX(42px) rotate(-40deg); }
+  .orbit-letters span:nth-child(3){ transform:rotate(80deg) translateX(42px) rotate(-80deg); color:var(--yellow); }
+  .orbit-letters span:nth-child(4){ transform:rotate(120deg) translateX(42px) rotate(-120deg); }
+  .orbit-letters span:nth-child(5){ transform:rotate(160deg) translateX(42px) rotate(-160deg); color:var(--magenta); }
+  .orbit-letters span:nth-child(6){ transform:rotate(200deg) translateX(42px) rotate(-200deg); }
+  .orbit-letters span:nth-child(7){ transform:rotate(240deg) translateX(42px) rotate(-240deg); color:var(--cyan); }
+  .orbit-letters span:nth-child(8){ transform:rotate(280deg) translateX(42px) rotate(-280deg); }
+  .orbit-letters span:nth-child(9){ transform:rotate(320deg) translateX(42px) rotate(-320deg); color:var(--yellow); }
+  @keyframes stormSpin { to { transform:rotate(360deg); } }
+  @keyframes letterOrbit { to { transform:rotate(360deg); } }
+  .logo {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(2.25rem,8vw,3.45rem);
+    letter-spacing:3.5px;
+    background:linear-gradient(135deg,var(--cyan) 0%,#fff 45%,var(--magenta) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1;
+    text-shadow:0 0 28px rgba(0,229,255,.15);
+  }
+  .tagline { color:var(--muted); font-size:0.72rem; margin-top:6px; letter-spacing:2.5px; text-transform:uppercase; text-align:center; white-space:nowrap; }
+  .tagline .dot { opacity:0.35; font-size:0.55rem; }
+
+  /* ── SCREENS ── */
+  .screen { display:none; }
+  .screen.active { display:block; }
+
+  /* ── MENU ── */
+  .menu-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:22px; padding:24px 20px; margin-top:12px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.4);
+  }
+  .menu-title { font-size:0.85rem; font-weight:800; color:var(--muted); margin-bottom:14px; text-align:center; letter-spacing:2px; text-transform:uppercase; }
+  .diff-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:18px; }
+  .diff-btn {
+    background:var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:16px 8px; text-align:center; cursor:pointer; transition:all .2s;
+    color:var(--text); font-family:'Nunito',sans-serif; font-weight:700;
+  }
+  .diff-btn .diff-icon { font-size:1.6rem; display:block; margin-bottom:6px; }
+  .diff-btn .diff-name { font-size:0.85rem; display:block; font-weight:800; }
+  .diff-btn .diff-time { font-size:0.7rem; color:var(--muted); display:block; margin-top:3px; }
+  .diff-btn:hover, .diff-btn.selected {
+    border-color:var(--cyan); background:rgba(0,229,255,0.08);
+    transform:translateY(-3px); box-shadow:0 6px 24px rgba(0,229,255,0.2);
+  }
+  .diff-btn.selected .diff-name { color:var(--cyan); }
+  .start-btn { display:flex; align-items:center; justify-content:center; gap:12px; 
+    width:100%; padding:17px;
+    background:linear-gradient(135deg,var(--cyan),var(--magenta));
+    border:none; border-radius:14px;
+    font-family:'Bebas Neue',sans-serif; font-size:1.55rem; letter-spacing:3px;
+    color:#fff; cursor:pointer; transition:all .2s;
+    box-shadow:0 4px 28px rgba(0,229,255,0.3);
+  }
+  .start-btn:hover { transform:translateY(-2px); box-shadow:0 8px 36px rgba(0,229,255,0.45); }
+  .start-btn .play-icon { width:22px; height:22px; background:rgba(255,255,255,0.25); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .start-btn .play-icon::after { content:""; display:block; width:0; height:0; border-style:solid; border-width:5px 0 5px 9px; border-color:transparent transparent transparent #fff; margin-left:2px; }
+  .how-box {
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:14px 16px; margin-top:12px; font-size:0.84rem; line-height:1.8; color:var(--muted);
+  }
+  .how-box strong { color:var(--text); display:block; margin-bottom:4px; }
+  .how-box ol { padding-left:18px; }
+
+  /* ── HUD ── */
+  .hud { display:flex; justify-content:space-between; align-items:center; margin:12px 0 10px; gap:8px; }
+  .hud-box {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:9px 12px; text-align:center; flex:1;
+  }
+  .hud-label { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .hud-val { font-family:'Bebas Neue',sans-serif; font-size:1.75rem; line-height:1.05; }
+  .hud-val.cyan { color:var(--cyan); }
+  .hud-val.magenta { color:var(--magenta); }
+
+  /* Timer */
+  .timer-wrap { position:relative; display:flex; align-items:center; justify-content:center; }
+  .timer-ring { transform:rotate(-90deg); }
+  .timer-ring circle { transition:stroke-dashoffset 0.9s linear; }
+  .timer-num { position:absolute; font-family:'Bebas Neue',sans-serif; font-size:1.35rem; color:var(--cyan); }
+  .timer-num.warn { color:var(--red); animation:pulse .5s infinite alternate; }
+  @keyframes pulse { from{opacity:1}to{opacity:.25} }
+
+  /* ── GAME CARD ── */
+  .question-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:22px; padding:20px 16px 16px; text-align:center; margin-bottom:10px;
+    box-shadow:0 6px 32px rgba(0,0,0,0.35);
+  }
+  .category-badge {
+    display:inline-block;
+    background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.28);
+    color:var(--cyan); border-radius:20px; padding:3px 14px;
+    font-size:0.73rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+    margin-bottom:14px;
+  }
+
+  /* ── ANSWER SLOTS ── */
+  .slots-label { font-size:0.62rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+  .answer-slots {
+    display:flex; justify-content:center; align-items:center;
+    flex-wrap:nowrap; gap:4px;
+    margin-bottom:14px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--border);
+    overflow:visible;
+  }
+  .slot {
+    flex:0 0 auto;
+    background:rgba(0,229,255,0.04);
+    border:2px dashed rgba(0,229,255,0.2);
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bebas Neue',sans-serif;
+    color:var(--cyan);
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .slot:not(.empty):hover { background:rgba(0,229,255,0.12); border-color:var(--cyan); border-style:solid; }
+  .slot.empty { cursor:default; }
+  .slot.correct-flash { background:rgba(0,255,136,0.15); border-color:var(--green); border-style:solid; color:var(--green); }
+  .slot.wrong-flash { background:rgba(255,51,85,0.15); border-color:var(--red); border-style:solid; color:var(--red); animation:shake .3s; }
+
+  /* ── LETTER POOL ── */
+  .pool-label { font-size:0.62rem; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+  .letter-pool {
+    display:flex; justify-content:center; align-items:center;
+    flex-wrap:nowrap; gap:4px;
+    overflow:visible;
+  }
+  .tile {
+    flex:0 0 auto;
+    background:var(--card);
+    border:2px solid var(--border);
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bebas Neue',sans-serif;
+    color:var(--yellow);
+    cursor:pointer;
+    transition:opacity .2s, filter .2s, transform .15s, border-color .15s, background .15s;
+    animation:tileIn .22s ease both;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  @keyframes tileIn {
+    from{transform:scale(0) rotate(-12deg);opacity:0}
+    to{transform:scale(1) rotate(0);opacity:1}
+  }
+  .tile:hover { border-color:var(--yellow); background:rgba(255,230,0,0.1); transform:translateY(-3px); }
+  .tile:active { transform:scale(0.9); }
+  .tile.used {
+    opacity:0.18; pointer-events:none;
+    filter:grayscale(1) brightness(0.6);
+  }
+
+  /* controls row */
+  .controls-row {
+    display:flex; align-items:center; justify-content:center;
+    margin-top:12px; gap:8px;
+  }
+  .ctrl-btn {
+    background:none; border:1px solid var(--border); border-radius:8px;
+    color:var(--muted); font-family:'Nunito',sans-serif; font-size:0.78rem; font-weight:700;
+    padding:7px 14px; cursor:pointer; transition:all .2s; white-space:nowrap;
+    display:flex; align-items:center; gap:5px;
+  }
+  .ctrl-btn:hover.shuffle { border-color:var(--yellow); color:var(--yellow); }
+  .ctrl-btn:hover.clear   { border-color:var(--red);    color:var(--red);    }
+  .ctrl-btn.shuffle:hover { border-color:var(--yellow); color:var(--yellow); }
+  .ctrl-btn.clear:hover   { border-color:var(--red);    color:var(--red);    }
+
+  /* feedback */
+  .feedback { text-align:center; font-size:1rem; font-weight:800; min-height:24px; margin-top:8px; transition:all .15s; }
+  .feedback.ok  { color:var(--green); }
+  .feedback.err { color:var(--red); }
+  .hint-reveal { text-align:center; color:var(--magenta); font-size:0.9rem; font-weight:700; letter-spacing:4px; min-height:20px; margin-top:5px; text-transform:uppercase; }
+  .slot.hint-placed { background:rgba(255,0,170,0.15); border-color:var(--magenta); border-style:solid; color:var(--magenta); }
+  .tile.hint-glow { border-color:var(--magenta); background:rgba(255,0,170,0.18); color:var(--magenta); box-shadow:0 0 10px rgba(255,0,170,0.5); }
+
+  /* action row */
+  .action-row { display:flex; gap:8px; margin-top:8px; }
+  .action-btn {
+    flex:1; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; color:var(--muted); font-family:'Nunito',sans-serif;
+    font-size:0.8rem; font-weight:700; padding:10px 8px; cursor:pointer; transition:all .2s;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .action-btn:hover { border-color:var(--magenta); color:var(--magenta); }
+  .action-btn .cost { font-size:0.65rem; color:var(--muted); font-weight:600; }
+
+  /* progress */
+  .progress-wrap { background:var(--surface); border-radius:99px; height:5px; margin-top:10px; overflow:hidden; }
+  .progress-bar  { height:100%; background:linear-gradient(90deg,var(--cyan),var(--magenta)); border-radius:99px; transition:width .4s ease; }
+
+  /* ── RESULT ── */
+  .result-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:22px; padding:32px 24px; text-align:center; margin-top:12px;
+    box-shadow:0 8px 48px rgba(0,0,0,0.5);
+  }
+  .result-emoji { font-size:3.6rem; display:block; margin-bottom:6px; }
+  .result-title {
+    font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:3px;
+    background:linear-gradient(135deg,var(--cyan),var(--magenta));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:20px;
+  }
+  /* 4-column stats */
+  .result-stats { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:16px; }
+  .stat-box { background:var(--card); border-radius:14px; padding:14px 6px; }
+  .stat-num { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; line-height:1; }
+  .stat-num.cyan    { color:var(--cyan); }
+  .stat-num.green   { color:var(--green); }
+  .stat-num.yellow  { color:var(--yellow); }
+  .stat-num.magenta { color:var(--magenta); }
+  .stat-label { font-size:0.64rem; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* total time banner */
+  .total-time-banner {
+    background:rgba(255,230,0,0.06); border:1px solid rgba(255,230,0,0.2);
+    border-radius:12px; padding:10px 16px; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+  }
+  .ttb-label { font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .ttb-val { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--yellow); letter-spacing:1px; }
+
+  .best-badge {
+    display:inline-block; background:rgba(0,229,255,0.07); border:1px solid rgba(0,229,255,0.25);
+    color:var(--cyan); border-radius:20px; padding:5px 18px;
+    font-size:0.8rem; font-weight:700; margin-bottom:20px; letter-spacing:0.5px;
+  }
+  .result-actions { display:flex; flex-direction:column; gap:10px; }
+  .replay-btn { display:flex; align-items:center; justify-content:center; gap:12px; 
+    width:100%; padding:16px;
+    background:linear-gradient(135deg,var(--cyan),var(--magenta));
+    border:none; border-radius:14px;
+    font-family:'Bebas Neue',sans-serif; font-size:1.45rem; letter-spacing:3px;
+    color:#fff; cursor:pointer; transition:all .2s; box-shadow:0 4px 28px rgba(0,229,255,0.25);
+  }
+  .replay-btn:hover { transform:translateY(-2px); box-shadow:0 8px 36px rgba(0,229,255,0.4); }
+  .menu-link { color:var(--muted); font-size:0.84rem; padding:8px; cursor:pointer; transition:color .2s; }
+  .menu-link:hover { color:var(--text); }
+
+
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  /* ── LANGUAGE TOGGLE ── */
+  .lang-toggle {
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin: 6px auto 0; width: fit-content;
+  }
+  .lang-btn {
+    background:var(--card); border:2px solid var(--border);
+    border-radius:10px; padding:5px 14px;
+    font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:800;
+    color:var(--muted); cursor:pointer; transition:all .2s; letter-spacing:1px;
+  }
+  .lang-btn.active {
+    border-color:var(--cyan); color:var(--cyan);
+    background:rgba(0,229,255,0.1);
+  }
+  .lang-btn:hover:not(.active) { border-color:var(--muted); color:var(--text); }
+
+  .confetti-piece { position:fixed; top:-10px; pointer-events:none; z-index:999; border-radius:2px; animation:fall linear forwards; }
+  @keyframes fall { to{transform:translateY(110vh) rotate(720deg);opacity:0} }
+
+  /* ── SOUND TOGGLE ── */
+  .sound-btn {
+    background:var(--card); border:2px solid var(--border);
+    border-radius:10px; padding:5px 12px;
+    font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:800;
+    color:var(--muted); cursor:pointer; transition:all .2s; letter-spacing:1px;
+  }
+  .sound-btn.on {
+    border-color:var(--yellow); color:var(--yellow);
+    background:rgba(255,230,0,0.08);
+  }
+  .sound-btn:hover { border-color:var(--text); color:var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand-mark" aria-label="WordStorm logo">
+      <div class="storm-core"></div>
+      <div class="orbit-letters" aria-hidden="true">
+        <span>W</span><span>O</span><span>R</span><span>D</span><span>S</span><span>T</span><span>O</span><span>R</span><span>M</span>
+      </div>
+    </div>
+    <div class="logo" id="logoText">WordStorm</div>
+    <div class="tagline" id="taglineText">Think Fast · Spell Faster</div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btnTR" onclick="setLang('tr')">🇹🇷 TR</button>
+      <button class="lang-btn" id="btnEN" onclick="setLang('en')">🇬🇧 EN</button>
+      <button class="sound-btn on" id="soundToggleBtn" onclick="toggleSound()" title="Sesi aç/kapat">🔊</button>
+    </div>
+  </header>
+
+  <!-- MENU -->
+  <div id="menuScreen" class="screen active">
+    <div class="menu-card">
+      <div class="menu-title" id="menuTitle">Zorluk Seç</div>
+      <div class="diff-grid">
+        <button class="diff-btn selected" data-diff="easy" onclick="selectDiff(this)">
+          <span class="diff-icon">🌤️</span>
+          <span class="diff-name" id="diffEasyName">Kolay</span>
+          <span class="diff-time" id="diffEasyTime">45 sn</span>
+        </button>
+        <button class="diff-btn" data-diff="medium" onclick="selectDiff(this)">
+          <span class="diff-icon">⛈️</span>
+          <span class="diff-name" id="diffMedName">Orta</span>
+          <span class="diff-time" id="diffMedTime">30 sn</span>
+        </button>
+        <button class="diff-btn" data-diff="hard" onclick="selectDiff(this)">
+          <span class="diff-icon">🌪️</span>
+          <span class="diff-name" id="diffHardName">Zor</span>
+          <span class="diff-time" id="diffHardTime">20 sn</span>
+        </button>
+      </div>
+      <button class="start-btn" onclick="startGame()" id="startBtn">OYNA <span class="play-icon"></span></button>
+    </div>
+    <div class="how-box" id="howBox">
+      <strong id="howTitle">Nasıl Oynanır?</strong>
+      <ol id="howList">
+        <li>Karışık harf kutucukları belirir</li>
+        <li>Harflere <strong>sırayla tıkla</strong> — kelimeyi yukarıda oluştur</li>
+        <li>Son harfe tıklayarak geri alabilirsin</li>
+        <li>Kelime tamamlanınca otomatik kontrol edilir!</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameScreen" class="screen">
+    <div class="hud">
+      <div class="hud-box">
+        <div class="hud-label" id="hudScore">Puan</div>
+        <div class="hud-val cyan" id="scoreDisplay">0</div>
+      </div>
+      <div class="hud-box" style="flex:0 0 auto;background:none;border:none;padding:2px;">
+        <div class="timer-wrap">
+          <svg class="timer-ring" width="68" height="68">
+            <circle cx="34" cy="34" r="28" stroke="#2a2a4a" stroke-width="5" fill="none"/>
+            <circle id="timerCircle" cx="34" cy="34" r="28"
+              stroke="#00e5ff" stroke-width="5" fill="none"
+              stroke-dasharray="175.9" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <span class="timer-num" id="timerNum">45</span>
+        </div>
+      </div>
+      <div class="hud-box">
+        <div class="hud-label" id="hudWord">Kelime</div>
+        <div class="hud-val magenta"><span id="wordNum">1</span>/10</div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="category-badge" id="categoryBadge">–</div>
+
+      <div class="slots-label" id="slotsLabel">Cevabın</div>
+      <div class="answer-slots" id="answerSlots"></div>
+
+      <div class="pool-label" id="poolLabel">Harfler</div>
+      <div class="letter-pool" id="letterPool"></div>
+
+      <div class="controls-row">
+        <button class="ctrl-btn clear" onclick="clearAnswer()" id="clearBtn">✕ Temizle</button>
+        <button class="ctrl-btn shuffle" onclick="doShuffle()" id="shuffleBtn">🔀 Karıştır</button>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+
+    <div class="action-row">
+      <button class="action-btn" onclick="useHint()">
+        💡 <span id="hintBtnText">İpucu</span>
+        <span class="cost" id="hintCost">−5 puan</span>
+      </button>
+      <button class="action-btn" onclick="skipWord()">
+        ⏭️ <span id="skipBtnText">Geç</span>
+        <span class="cost" id="skipCost">−10 puan</span>
+      </button>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultScreen" class="screen">
+    <div class="result-card">
+      <span class="result-emoji" id="resultEmoji">🎉</span>
+      <div class="result-title" id="resultTitle">Harika!</div>
+
+      <div class="result-stats">
+        <div class="stat-box">
+          <div class="stat-num cyan" id="finalScore">0</div>
+          <div class="stat-label" id="statScore">Puan</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num green" id="correctCount">0</div>
+          <div class="stat-label" id="statCorrect">Doğru</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num yellow" id="avgTime">0s</div>
+          <div class="stat-label" id="statAvg">Ort. Süre</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num magenta" id="fastestTime">0s</div>
+          <div class="stat-label" id="statFastest">En Hızlı</div>
+        </div>
+      </div>
+
+      <div class="total-time-banner">
+        <span class="ttb-label" id="statTotal">⏱ Toplam Süre</span>
+        <span class="ttb-val" id="totalTime">–</span>
+      </div>
+
+      <div class="best-badge" id="bestBadge">🏆 En İyi: 0</div>
+      <div class="result-actions">
+        <button class="replay-btn" onclick="startGame()" id="replayBtn">TEKRAR OYNA <span class="play-icon"></span></button>
+        <span class="menu-link" onclick="showMenu()" id="menuLink">← Ana Menü</span>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<script>
+const wordBank = {
+  easy: [
+    {word:"ARABA",cat:"Ulaşım"},{word:"ELMA",cat:"Meyve"},{word:"KEDİ",cat:"Hayvan"},
+    {word:"KAPI",cat:"Ev"},{word:"MASA",cat:"Mobilya"},{word:"BALIK",cat:"Hayvan"},
+    {word:"KİTAP",cat:"Nesne"},{word:"OKUL",cat:"Yer"},{word:"AYAK",cat:"Vücut"},
+    {word:"DENİZ",cat:"Doğa"},{word:"BEBEK",cat:"İnsan"},{word:"BULUT",cat:"Hava"},
+    {word:"ORMAN",cat:"Doğa"},{word:"ASLAN",cat:"Hayvan"},{word:"KALEM",cat:"Nesne"},
+    {word:"PİZZA",cat:"Yiyecek"},{word:"KUZU",cat:"Hayvan"},{word:"BAHÇE",cat:"Yer"},
+    {word:"ÇANTA",cat:"Aksesuar"},{word:"YILAN",cat:"Hayvan"},{word:"ÇİÇEK",cat:"Doğa"},
+    {word:"KÖPEK",cat:"Hayvan"},{word:"EKMEK",cat:"Yiyecek"},{word:"KEMAN",cat:"Müzik"},
+    {word:"TABLO",cat:"Sanat"},{word:"GÜNEŞ",cat:"Doğa"},{word:"YAĞMUR",cat:"Hava"},
+    {word:"ŞEKER",cat:"Yiyecek"},{word:"MARUL",cat:"Yiyecek"},{word:"TAVAN",cat:"Ev"},
+    {word:"KANAT",cat:"Hayvan"},{word:"BANKA",cat:"Yer"},{word:"ÇORAP",cat:"Giysi"},
+    {word:"KAŞIK",cat:"Nesne"},{word:"LAMBA",cat:"Ev"},{word:"TARAK",cat:"Nesne"},
+    {word:"ÖRDEK",cat:"Hayvan"},{word:"MANAV",cat:"Yer"},{word:"SABUN",cat:"Ürün"},
+    {word:"TAHTA",cat:"Malzeme"},{word:"FENER",cat:"Nesne"},{word:"DUMAN",cat:"Hava"},
+    {word:"KİRPİ",cat:"Hayvan"},{word:"KAVUN",cat:"Meyve"},{word:"İNCİR",cat:"Meyve"},
+    {word:"ÇATAL",cat:"Nesne"},{word:"TENİS",cat:"Spor"},{word:"KUZEY",cat:"Yön"},
+    {word:"MASAL",cat:"Edebiyat"},{word:"KOVAN",cat:"Doğa"},{word:"YÜZÜK",cat:"Aksesuar"},
+    {word:"DOLAP",cat:"Mobilya"},{word:"ÇARŞI",cat:"Yer"},{word:"HAMUR",cat:"Yiyecek"},
+    {word:"TOPAK",cat:"Nesne"},{word:"SİLAH",cat:"Nesne"},{word:"ATLAS",cat:"Kitap"},
+    {word:"NEHİR",cat:"Doğa"},{word:"TAKIM",cat:"Spor"},{word:"SAKAL",cat:"Vücut"},
+    {word:"KAŞAR",cat:"Yiyecek"},{word:"ÇADIR",cat:"Nesne"},{word:"MEYVE",cat:"Yiyecek"},
+    {word:"HAVLU",cat:"Ev"},{word:"DUVAR",cat:"Ev"},{word:"KAPAK",cat:"Nesne"},
+    {word:"YUMAK",cat:"Nesne"},{word:"KAZAN",cat:"Nesne"},{word:"TUZAK",cat:"Nesne"},
+    {word:"KAYIK",cat:"Ulaşım"},{word:"ÇELİK",cat:"Malzeme"},{word:"HAMAK",cat:"Nesne"},
+    {word:"KOLTUK",cat:"Mobilya"},{word:"BARET",cat:"Giysi"},{word:"PAKET",cat:"Nesne"},
+    {word:"KALAMAR",cat:"Hayvan"},{word:"TESTİ",cat:"Nesne"},{word:"KAPTAN",cat:"Kişi"},
+    {word:"LİMON",cat:"Meyve"},{word:"MANTAR",cat:"Yiyecek"},{word:"KADIN",cat:"İnsan"},
+    {word:"ASKER",cat:"Kişi"},{word:"ZEYTİN",cat:"Yiyecek"},{word:"HAVUZ",cat:"Yer"},
+    {word:"KILIÇ",cat:"Nesne"},{word:"TARAF",cat:"Kavram"},{word:"YAZAR",cat:"Kişi"},
+    {word:"FASULYE",cat:"Yiyecek"},{word:"KEMER",cat:"Aksesuar"},{word:"SICAK",cat:"Hava"},
+    {word:"MERDİVEN",cat:"Ev"},{word:"ÇIRAK",cat:"Kişi"},{word:"KÜREK",cat:"Alet"},
+    {word:"DEMİR",cat:"Malzeme"},{word:"VAZO",cat:"Nesne"},{word:"TAHMİN",cat:"Kavram"},
+    {word:"TAVUK",cat:"Hayvan"},{word:"HOROZ",cat:"Hayvan"},{word:"KARGA",cat:"Hayvan"},
+    {word:"SERÇE",cat:"Hayvan"},{word:"GÜVERCİN",cat:"Hayvan"},{word:"KARTAL",cat:"Hayvan"},
+    {word:"BAYKUŞ",cat:"Hayvan"},{word:"LEYLEK",cat:"Hayvan"},{word:"PAPAĞAN",cat:"Hayvan"},
+    {word:"ARICI",cat:"Kişi"},{word:"BAHÇIVAN",cat:"Kişi"},{word:"BOYACI",cat:"Kişi"},
+    {word:"ÇOBAN",cat:"Kişi"},{word:"KASAP",cat:"Kişi"},{word:"FIRIN",cat:"Yer"},
+    {word:"MUTFAK",cat:"Ev"},{word:"BANYO",cat:"Ev"},{word:"YATAK",cat:"Mobilya"},
+    {word:"SANDALYE",cat:"Mobilya"},{word:"PERDE",cat:"Ev"},{word:"HALI",cat:"Ev"},
+    {word:"AYNA",cat:"Nesne"},{word:"BARDAK",cat:"Nesne"},{word:"BIÇAK",cat:"Nesne"},
+    {word:"TENCERE",cat:"Nesne"},{word:"TAVA",cat:"Nesne"},{word:"KOVA",cat:"Nesne"},
+    {word:"ELDİVEN",cat:"Giysi"},{word:"ATKI",cat:"Giysi"},{word:"BERE",cat:"Giysi"},
+    {word:"KAZAK",cat:"Giysi"},{word:"GÖMLEK",cat:"Giysi"},{word:"PANTOLON",cat:"Giysi"},
+    {word:"ETEK",cat:"Giysi"},{word:"AYAKKABI",cat:"Giysi"},{word:"TERLİK",cat:"Giysi"},
+    {word:"CEKET",cat:"Giysi"},{word:"MONT",cat:"Giysi"},{word:"YAĞMURLUK",cat:"Giysi"},
+    {word:"KARPUZ",cat:"Meyve"},{word:"KİRAZ",cat:"Meyve"},{word:"VİŞNE",cat:"Meyve"},
+    {word:"ÇİLEK",cat:"Meyve"},{word:"ÜZÜM",cat:"Meyve"},{word:"ARMUT",cat:"Meyve"},
+    {word:"ŞEFTALİ",cat:"Meyve"},{word:"ERİK",cat:"Meyve"},{word:"KAYISI",cat:"Meyve"},
+    {word:"MUZ",cat:"Meyve"},{word:"PORTAKAL",cat:"Meyve"},{word:"MANDALİNA",cat:"Meyve"},
+    {word:"GREYFURT",cat:"Meyve"},{word:"ANANAS",cat:"Meyve"},{word:"HURMA",cat:"Meyve"},
+    {word:"PATATES",cat:"Yiyecek"},{word:"DOMATES",cat:"Yiyecek"},{word:"SALATALIK",cat:"Yiyecek"},
+    {word:"BİBER",cat:"Yiyecek"},{word:"PATLICAN",cat:"Yiyecek"},{word:"KABAK",cat:"Yiyecek"},
+    {word:"SOĞAN",cat:"Yiyecek"},{word:"SARIMSAK",cat:"Yiyecek"},{word:"HAVUÇ",cat:"Yiyecek"},
+    {word:"ISPANAK",cat:"Yiyecek"},{word:"MAYDANOZ",cat:"Yiyecek"},{word:"NANE",cat:"Yiyecek"},
+    {word:"DEREOTU",cat:"Yiyecek"},{word:"KEKİK",cat:"Yiyecek"},{word:"PİRİNÇ",cat:"Yiyecek"},
+    {word:"BULGUR",cat:"Yiyecek"},{word:"MAKARNA",cat:"Yiyecek"},{word:"SİMİT",cat:"Yiyecek"},
+    {word:"POĞAÇA",cat:"Yiyecek"},{word:"BÖREK",cat:"Yiyecek"},{word:"GÖZLEME",cat:"Yiyecek"},
+    {word:"PİDE",cat:"Yiyecek"},{word:"LAHMACUN",cat:"Yiyecek"},{word:"KEBAP",cat:"Yiyecek"},
+    {word:"KÖFTE",cat:"Yiyecek"},{word:"PİLAV",cat:"Yiyecek"},{word:"ÇORBA",cat:"Yiyecek"},
+    {word:"SALATA",cat:"Yiyecek"},{word:"CACIK",cat:"Yiyecek"},{word:"AYRAN",cat:"İçecek"},
+    {word:"OTOBÜS",cat:"Ulaşım"},{word:"TREN",cat:"Ulaşım"},{word:"UÇAK",cat:"Ulaşım"},
+    {word:"GEMİ",cat:"Ulaşım"},{word:"BİSİKLET",cat:"Ulaşım"},{word:"MOTOSİKLET",cat:"Ulaşım"},
+    {word:"TAKSİ",cat:"Ulaşım"},{word:"METRO",cat:"Ulaşım"},{word:"TRAMVAY",cat:"Ulaşım"},
+    {word:"VAPUR",cat:"Ulaşım"},{word:"SANDAL",cat:"Ulaşım"},{word:"TEKNE",cat:"Ulaşım"},
+    {word:"KOLYE",cat:"Aksesuar"},{word:"KÜPE",cat:"Aksesuar"},{word:"BİLEKLİK",cat:"Aksesuar"},
+    {word:"SAAT",cat:"Aksesuar"},{word:"GÖZLÜK",cat:"Aksesuar"},{word:"ŞAPKA",cat:"Aksesuar"},
+    {word:"CÜZDAN",cat:"Aksesuar"},{word:"PENCERE",cat:"Ev"},{word:"ÇATI",cat:"Ev"},
+    {word:"KÖPRÜ",cat:"Yapı"},{word:"KULE",cat:"Yapı"},{word:"ÇEŞME",cat:"Yapı"},
+    {word:"CAMİ",cat:"Yapı"},{word:"KİLİSE",cat:"Yapı"},{word:"MARKET",cat:"Yer"},
+    {word:"MAĞAZA",cat:"Yer"},{word:"RESTORAN",cat:"Yer"},{word:"KAFE",cat:"Yer"},
+    {word:"PARK",cat:"Yer"},{word:"PLAJ",cat:"Yer"},{word:"DAĞ",cat:"Doğa"},
+    {word:"OVA",cat:"Doğa"},{word:"VADİ",cat:"Doğa"},{word:"YAYLA",cat:"Doğa"},
+    {word:"GÖLET",cat:"Doğa"},{word:"ÇAYIR",cat:"Doğa"},{word:"DEFTER",cat:"Nesne"},
+    {word:"SİLGİ",cat:"Nesne"},{word:"CETVEL",cat:"Nesne"},{word:"MİKSER",cat:"Alet"},
+    {word:"ÇEKİÇ",cat:"Alet"},{word:"TORNAVİDA",cat:"Alet"},{word:"MATKAP",cat:"Alet"},
+    {word:"MAKAS",cat:"Alet"},{word:"PENSE",cat:"Alet"},{word:"TESTERE",cat:"Alet"},
+    {word:"KANEPE",cat:"Mobilya"},{word:"RANZA",cat:"Mobilya"},{word:"RAF",cat:"Mobilya"},
+    {word:"VİTRİN",cat:"Mobilya"},{word:"KONSOL",cat:"Mobilya"},{word:"SEHPA",cat:"Mobilya"},
+    {word:"KAPALI",cat:"Durum"},{word:"AÇIK",cat:"Durum"},
+    {word:"YENİ",cat:"Durum"},{word:"ESKİ",cat:"Durum"},
+    {word:"TEMİZ",cat:"Durum"},{word:"KİRLİ",cat:"Durum"},
+    {word:"DOLU",cat:"Durum"},{word:"BOŞ",cat:"Durum"},{word:"SERİN",cat:"Hava"},
+    {word:"SOĞUK",cat:"Hava"},{word:"ISLAK",cat:"Hava"},{word:"KURU",cat:"Hava"},
+    {word:"RÜZGARLI",cat:"Hava"},
+  ],
+  medium: [
+    {word:"FUTBOL",cat:"Spor"},{word:"KASABA",cat:"Yer"},{word:"YILDIZ",cat:"Uzay"},
+    {word:"HALTER",cat:"Spor"},{word:"KUZGUN",cat:"Hayvan"},{word:"MERMER",cat:"Malzeme"},
+    {word:"KAPLAN",cat:"Hayvan"},{word:"TURŞU",cat:"Yiyecek"},{word:"MOZAİK",cat:"Sanat"},
+    {word:"FIRTINA",cat:"Hava"},{word:"REHBER",cat:"Kişi"},{word:"RÜZGAR",cat:"Doğa"},
+    {word:"ŞELALE",cat:"Doğa"},{word:"MAYMUN",cat:"Hayvan"},{word:"TATMİN",cat:"Duygu"},
+    {word:"KELEBEK",cat:"Hayvan"},{word:"MEYDAN",cat:"Yer"},{word:"PARFÜM",cat:"Ürün"},
+    {word:"KARTAL",cat:"Hayvan"},{word:"BASKÜL",cat:"Alet"},{word:"KÖPRÜ",cat:"Yapı"},
+    {word:"GÜREŞ",cat:"Spor"},{word:"VOLKAN",cat:"Doğa"},{word:"BAYKUŞ",cat:"Hayvan"},
+    {word:"BALKON",cat:"Ev"},{word:"CÜZDAN",cat:"Aksesuar"},{word:"PENGUEN",cat:"Hayvan"},
+    {word:"TRAKTÖR",cat:"Ulaşım"},{word:"KAKTÜS",cat:"Bitki"},{word:"KARPUZ",cat:"Meyve"},
+    {word:"PANTER",cat:"Hayvan"},{word:"ÇARŞAF",cat:"Ev"},{word:"KAYNAK",cat:"Doğa"},
+    {word:"DESTAN",cat:"Edebiyat"},{word:"TİLKİ",cat:"Hayvan"},{word:"GÖMLEK",cat:"Giysi"},
+    {word:"HÜZÜN",cat:"Duygu"},{word:"BALİNA",cat:"Hayvan"},{word:"ZEYBEK",cat:"Dans"},
+    {word:"ŞEHİR",cat:"Yer"},{word:"LİMON",cat:"Meyve"},{word:"BÖLÜM",cat:"Kavram"},
+    {word:"MÜZİK",cat:"Sanat"},{word:"ÇAMUR",cat:"Doğa"},{word:"DENİZ",cat:"Doğa"},
+    {word:"TÜNEL",cat:"Yapı"},{word:"SULTAN",cat:"Tarih"},{word:"KAFES",cat:"Nesne"},
+    {word:"NEHİR",cat:"Doğa"},{word:"REÇEL",cat:"Yiyecek"},{word:"TABAK",cat:"Nesne"},
+    {word:"RAKAM",cat:"Kavram"},{word:"FİYORT",cat:"Doğa"},{word:"GÜVERCİN",cat:"Hayvan"},
+    {word:"SİLİKON",cat:"Malzeme"},{word:"KONSER",cat:"Müzik"},{word:"DENİZKIZI",cat:"Efsane"},
+    {word:"BUZDOLABI",cat:"Ev"},{word:"BARINAK",cat:"Yer"},{word:"ÇEKİÇ",cat:"Alet"},
+    {word:"KANGURU",cat:"Hayvan"},{word:"ŞIRNAK",cat:"Yer"},{word:"SEYAHAT",cat:"Eylem"},
+    {word:"KIBRIS",cat:"Yer"},{word:"TİYATRO",cat:"Sanat"},{word:"CEPHE",cat:"Tarih"},
+    {word:"MIZRAK",cat:"Nesne"},{word:"YÜZBAŞI",cat:"Kişi"},{word:"FABRİKA",cat:"Yer"},
+    {word:"ŞAMPANYA",cat:"İçecek"},{word:"DÖVÜŞ",cat:"Spor"},{word:"GEMİCİ",cat:"Kişi"},
+    {word:"MÜREKKEP",cat:"Nesne"},{word:"SARKAÇ",cat:"Fizik"},{word:"KÜÇÜK",cat:"Kavram"},
+    {word:"MÜHÜR",cat:"Nesne"},{word:"BARİTON",cat:"Müzik"},{word:"BÖLGE",cat:"Yer"},
+    {word:"TEKERLEK",cat:"Nesne"},{word:"ÇİÇEKÇİ",cat:"Kişi"},{word:"TERHİS",cat:"Kavram"},
+    {word:"AKREP",cat:"Hayvan"},{word:"SICAKLIK",cat:"Hava"},{word:"ASİSTAN",cat:"Kişi"},
+    {word:"ROBOT",cat:"Teknoloji"},{word:"YELKEN",cat:"Ulaşım"},{word:"DALGIÇ",cat:"Kişi"},
+    {word:"KALKAN",cat:"Nesne"},{word:"CEVHER",cat:"Doğa"},{word:"RAKİP",cat:"Kavram"},
+    {word:"BERBER",cat:"Kişi"},{word:"GÖZLEM",cat:"Bilim"},{word:"NÜFUS",cat:"Kavram"},
+    {word:"HARİTA",cat:"Nesne"},{word:"TURNUVA",cat:"Spor"},{word:"FİYAT",cat:"Kavram"},
+    {word:"KUMSAL",cat:"Doğa"},{word:"MİMAR",cat:"Kişi"},{word:"AVUKAT",cat:"Kişi"},
+    {word:"HEKİM",cat:"Kişi"},{word:"ECZACI",cat:"Kişi"},{word:"ÖĞRETMEN",cat:"Kişi"},
+    {word:"MÜHENDİS",cat:"Kişi"},{word:"HUKUK",cat:"Bilim"},{word:"SINIF",cat:"Yer"},
+    {word:"KÜTÜPHANE",cat:"Yer"},{word:"HASTANE",cat:"Yer"},{word:"ECZANE",cat:"Yer"},
+    {word:"OTEL",cat:"Yer"},{word:"PANSİYON",cat:"Yer"},{word:"SİNEMA",cat:"Sanat"},
+    {word:"RESİM",cat:"Sanat"},{word:"HEYKEL",cat:"Sanat"},{word:"MİMARİ",cat:"Sanat"},
+    {word:"EDEBİYAT",cat:"Sanat"},{word:"ŞİİR",cat:"Edebiyat"},{word:"ROMAN",cat:"Edebiyat"},
+    {word:"HİKAYE",cat:"Edebiyat"},{word:"EFSANE",cat:"Edebiyat"},{word:"ANI",cat:"Edebiyat"},
+    {word:"DENEME",cat:"Edebiyat"},{word:"MAKALE",cat:"Edebiyat"},{word:"BASKETBOL",cat:"Spor"},
+    {word:"VOLEYBOL",cat:"Spor"},{word:"YÜZME",cat:"Spor"},{word:"KOŞU",cat:"Spor"},
+    {word:"BOKS",cat:"Spor"},{word:"BADMINTON",cat:"Spor"},{word:"GOLF",cat:"Spor"},
+    {word:"KAYAK",cat:"Spor"},{word:"SÖRF",cat:"Spor"},{word:"ATLETİZM",cat:"Spor"},
+    {word:"JİMNASTİK",cat:"Spor"},{word:"OKÇULUK",cat:"Spor"},{word:"ESKRİM",cat:"Spor"},
+    {word:"JUDO",cat:"Spor"},{word:"KARATE",cat:"Spor"},{word:"TEKVANDO",cat:"Spor"},
+    {word:"GÜLLE",cat:"Spor"},{word:"CİRİT",cat:"Spor"},{word:"METEOR",cat:"Uzay"},
+    {word:"ASTEROİT",cat:"Uzay"},{word:"GEZEGEN",cat:"Uzay"},{word:"UYDU",cat:"Uzay"},
+    {word:"NEBULA",cat:"Uzay"},{word:"GALAKSİ",cat:"Uzay"},{word:"SÜPERNOVA",cat:"Uzay"},
+    {word:"MARS",cat:"Uzay"},{word:"VENÜS",cat:"Uzay"},{word:"MERKÜR",cat:"Uzay"},
+    {word:"JÜPİTER",cat:"Uzay"},{word:"SATÜRN",cat:"Uzay"},{word:"URANÜS",cat:"Uzay"},
+    {word:"NEPTÜN",cat:"Uzay"},{word:"ÇITA",cat:"Hayvan"},{word:"LEOPAR",cat:"Hayvan"},
+    {word:"JAGUAR",cat:"Hayvan"},{word:"SERVİ",cat:"Bitki"},{word:"ÇAM",cat:"Bitki"},
+    {word:"KAVAK",cat:"Bitki"},{word:"SÖĞÜT",cat:"Bitki"},{word:"MEŞE",cat:"Bitki"},
+    {word:"ÇINAR",cat:"Bitki"},{word:"MANOLYA",cat:"Bitki"},{word:"ERGUVAN",cat:"Bitki"},
+    {word:"ZEYTİN",cat:"Bitki"},{word:"BÖĞÜRTLEN",cat:"Bitki"},{word:"KAR",cat:"Hava"},
+    {word:"DOLU",cat:"Hava"},{word:"SİS",cat:"Hava"},{word:"KASIRGA",cat:"Hava"},
+    {word:"HORTUM",cat:"Hava"},{word:"ŞİMŞEK",cat:"Hava"},{word:"DEPREM",cat:"Doğa"},
+    {word:"TSUNAMI",cat:"Doğa"},{word:"HEYELAN",cat:"Doğa"},{word:"YANGIN",cat:"Doğa"},
+    {word:"SEL",cat:"Doğa"},{word:"GÖKKUŞAĞI",cat:"Doğa"},{word:"YAMAÇ",cat:"Doğa"},
+    {word:"BOĞAZ",cat:"Doğa"},{word:"KÖRFEZ",cat:"Doğa"},{word:"DELTA",cat:"Doğa"},
+    {word:"LAGÜN",cat:"Doğa"},{word:"MAĞARA",cat:"Doğa"},{word:"KANYON",cat:"Doğa"},
+    {word:"UÇURUM",cat:"Doğa"},{word:"KAYALIK",cat:"Doğa"},{word:"KUMUL",cat:"Doğa"},
+    {word:"STEP",cat:"Doğa"},{word:"BOZKIR",cat:"Doğa"},{word:"ÇÖL",cat:"Doğa"},
+    {word:"BUZUL",cat:"Doğa"},{word:"BUZDAĞI",cat:"Doğa"},{word:"OKYANUS",cat:"Doğa"},
+    {word:"IRMAK",cat:"Doğa"},{word:"ZİRVE",cat:"Doğa"},{word:"TEPE",cat:"Doğa"},
+    {word:"PLATO",cat:"Doğa"},{word:"DÜZLÜK",cat:"Doğa"},{word:"PAZAR",cat:"Yer"},
+    {word:"ALIŞVERİŞ",cat:"Yer"},{word:"BAKKAL",cat:"Yer"},{word:"PASTANE",cat:"Yer"},
+    {word:"BÜFE",cat:"Yer"},{word:"CUMHURİYET",cat:"Tarih"},{word:"ATATÜRK",cat:"Tarih"},
+    {word:"SAVAŞ",cat:"Tarih"},{word:"BARIŞ",cat:"Tarih"},{word:"ZAFER",cat:"Tarih"},
+    {word:"GALİBİYET",cat:"Tarih"},{word:"YENİLGİ",cat:"Tarih"},{word:"KUŞATMA",cat:"Tarih"},
+    {word:"SÜRGÜN",cat:"Tarih"},{word:"OSMANLI",cat:"Tarih"},{word:"SELÇUKLU",cat:"Tarih"},
+    {word:"BİZANS",cat:"Tarih"},{word:"DÜNYA",cat:"Coğrafya"},{word:"AVRUPA",cat:"Coğrafya"},
+    {word:"ASYA",cat:"Coğrafya"},{word:"AFRİKA",cat:"Coğrafya"},{word:"AMERİKA",cat:"Coğrafya"},
+
+    {word:"KARADENİZ",cat:"Yer"},{word:"EGE",cat:"Yer"},
+    {word:"AKDENİZ",cat:"Yer"},{word:"MARMARA",cat:"Yer"},
+    {word:"İSTANBUL",cat:"Yer"},
+    {word:"ANKARA",cat:"Yer"},{word:"İZMİR",cat:"Yer"},{word:"ANTALYA",cat:"Yer"},
+    {word:"BURSA",cat:"Yer"},{word:"KONYA",cat:"Yer"},{word:"TRABZON",cat:"Yer"},
+    {word:"ERZURUM",cat:"Yer"},{word:"GAZİANTEP",cat:"Yer"},{word:"MERSİN",cat:"Yer"},
+    {word:"ADANA",cat:"Yer"},{word:"SAMSUN",cat:"Yer"},{word:"KAYSERİ",cat:"Yer"},
+    {word:"DİYARBAKIR",cat:"Yer"},{word:"ESKİŞEHİR",cat:"Yer"},{word:"MUĞLA",cat:"Yer"},
+  ],
+  hard: [
+    {word:"KASIRGA",cat:"Hava"},{word:"KAHRAMAN",cat:"Kişi"},{word:"HEYECAN",cat:"Duygu"},
+    {word:"YENGEÇ",cat:"Hayvan"},{word:"TELESKOP",cat:"Alet"},{word:"SEMBOL",cat:"Kavram"},
+    {word:"ŞAMPUAN",cat:"Ürün"},{word:"FELSEFE",cat:"Bilim"},{word:"YANSIMA",cat:"Fizik"},
+    {word:"HASTANE",cat:"Yer"},{word:"MÜZİSYEN",cat:"Kişi"},{word:"SPEKTRUM",cat:"Bilim"},
+    {word:"YANARDAĞ",cat:"Doğa"},{word:"MANZARA",cat:"Doğa"},{word:"BALONLAR",cat:"Nesne"},
+    {word:"DİNAMİT",cat:"Madde"},{word:"KARMAŞA",cat:"Durum"},{word:"ORKESTRA",cat:"Müzik"},
+    {word:"ANTRENÖR",cat:"Kişi"},{word:"KALKINMA",cat:"Kavram"},{word:"TURNUVA",cat:"Spor"},
+    {word:"PANORAMA",cat:"Görsel"},{word:"KARAKTER",cat:"Kavram"},{word:"LABİRENT",cat:"Yapı"},
+    {word:"MELODİ",cat:"Müzik"},{word:"PRİZMA",cat:"Fizik"},{word:"FOLKLOR",cat:"Kültür"},
+    {word:"HEYKEL",cat:"Sanat"},{word:"SÜRGÜN",cat:"Tarih"},{word:"ATMOSFER",cat:"Bilim"},
+    {word:"ASTRONOT",cat:"Kişi"},{word:"UZLAŞMA",cat:"Kavram"},{word:"ŞAMPİYON",cat:"Kişi"},
+    {word:"MATEMATİK",cat:"Bilim"},{word:"BİYOLOJİ",cat:"Bilim"},{word:"COĞRAFYA",cat:"Bilim"},
+    {word:"PROTOKOL",cat:"Kavram"},{word:"YÖNETMEN",cat:"Kişi"},{word:"KAVŞAK",cat:"Yer"},
+    {word:"KÜTÜPHANE",cat:"Yer"},{word:"DEPREM",cat:"Doğa"},{word:"GÖKKUŞAĞI",cat:"Doğa"},
+    {word:"AHTAPOT",cat:"Hayvan"},{word:"YÜKSELİŞ",cat:"Kavram"},{word:"ÇAĞLAYAN",cat:"Doğa"},
+    {word:"GELİŞİM",cat:"Kavram"},{word:"SENFONİ",cat:"Müzik"},{word:"REKABET",cat:"Kavram"},
+    {word:"ŞEFKATLİ",cat:"Duygu"},{word:"DÖNÜŞÜM",cat:"Kavram"},{word:"ENERJİK",cat:"Duygu"},
+    {word:"GERİLİM",cat:"Duygu"},{word:"ÇÖZÜNME",cat:"Kimya"},{word:"KALABALIK",cat:"Kavram"},
+    {word:"DEDEKTİF",cat:"Kişi"},{word:"ÜRETKENLİK",cat:"Kavram"},{word:"EVRENSEL",cat:"Kavram"},
+    {word:"GÖKDELEN",cat:"Yapı"},{word:"ANLAŞMA",cat:"Kavram"},{word:"MİHENK",cat:"Nesne"},
+    {word:"ÖZGÜRLÜK",cat:"Kavram"},{word:"MÜTTEFİK",cat:"Kişi"},{word:"SAVUNMA",cat:"Kavram"},
+    {word:"ETKİNLİK",cat:"Kavram"},{word:"CANLILIK",cat:"Kavram"},{word:"SÜKUNET",cat:"Duygu"},
+    {word:"TEKNOLOJİ",cat:"Bilim"},{word:"UYGULAMA",cat:"Teknoloji"},{word:"YOĞUNLUK",cat:"Fizik"},
+    {word:"BİYOGRAFİ",cat:"Edebiyat"},{word:"SİMGESEL",cat:"Sanat"},{word:"KAVRAYIŞ",cat:"Kavram"},
+    {word:"İLKELER",cat:"Kavram"},{word:"AKTARMA",cat:"Kavram"},{word:"GİRİŞİM",cat:"Kavram"},
+    {word:"ÇALIŞKAN",cat:"Duygu"},{word:"SÜRPRİZ",cat:"Duygu"},{word:"DAYANIKLI",cat:"Kavram"},
+    {word:"ÇÖKÜNTÜ",cat:"Durum"},{word:"GÜVENLİK",cat:"Kavram"},{word:"ETKİLEYİCİ",cat:"Duygu"},
+    {word:"ASTRONOMİ",cat:"Bilim"},{word:"MİTOLOJİ",cat:"Kültür"},{word:"GAZETECİ",cat:"Kişi"},
+    {word:"KARARLI",cat:"Duygu"},{word:"KAZANIM",cat:"Kavram"},{word:"TAKTİKSEL",cat:"Kavram"},
+    {word:"YARGILAMA",cat:"Hukuk"},{word:"GİRİŞİMCİ",cat:"Kişi"},{word:"ANLATICI",cat:"Kişi"},
+    {word:"BELİRSİZ",cat:"Kavram"},{word:"PARLAKLIK",cat:"Fizik"},{word:"RENKLİLİK",cat:"Sanat"},
+    {word:"EĞİLİMLİ",cat:"Kavram"},{word:"KÜLTÜR",cat:"Kavram"},{word:"MEDENİYET",cat:"Tarih"},
+    {word:"UYGARLIK",cat:"Tarih"},{word:"ARKEOLOJİ",cat:"Bilim"},{word:"ANTROPOLOJİ",cat:"Bilim"},
+    {word:"SOSYOLOJİ",cat:"Bilim"},{word:"PSİKOLOJİ",cat:"Bilim"},{word:"GEOMETRİ",cat:"Bilim"},
+    {word:"CEBİR",cat:"Bilim"},{word:"İSTATİSTİK",cat:"Bilim"},{word:"MİMARLIK",cat:"Sanat"},
+    {word:"SANATSAL",cat:"Sanat"},{word:"ESTETİK",cat:"Sanat"},{word:"YARATICILIK",cat:"Sanat"},
+    {word:"İLHAM",cat:"Sanat"},{word:"GELENEKSEL",cat:"Kültür"},{word:"MODERN",cat:"Kültür"},
+    {word:"ÇAĞDAŞ",cat:"Kültür"},{word:"POSTMODERN",cat:"Kültür"},{word:"AVANGARD",cat:"Kültür"},
+    {word:"KLASİK",cat:"Kültür"},{word:"BAROK",cat:"Kültür"},{word:"ROMANTİK",cat:"Kültür"},
+    {word:"RÖNESANS",cat:"Tarih"},{word:"REFORM",cat:"Tarih"},{word:"DEVRİM",cat:"Tarih"},
+    {word:"DİPLOMASİ",cat:"Siyasi"},{word:"MÜZAKERE",cat:"Siyasi"},{word:"ANTLAŞMA",cat:"Siyasi"},
+    {word:"ANAYASA",cat:"Hukuk"},{word:"KANUN",cat:"Hukuk"},{word:"MAHKEME",cat:"Hukuk"},
+    {word:"AVUKATLIK",cat:"Hukuk"},{word:"HAKEM",cat:"Hukuk"},{word:"KARAR",cat:"Hukuk"},
+    {word:"HÜKÜM",cat:"Hukuk"},{word:"İSTİNAF",cat:"Hukuk"},{word:"TEMYİZ",cat:"Hukuk"},
+    {word:"İCRA",cat:"Hukuk"},{word:"FATURA",cat:"Ekonomi"},{word:"VERGİ",cat:"Ekonomi"},
+    {word:"BÜTÇE",cat:"Ekonomi"},{word:"ENFLASYON",cat:"Ekonomi"},{word:"DEFLASYON",cat:"Ekonomi"},
+    {word:"BÜYÜME",cat:"Ekonomi"},{word:"DÖVİZ",cat:"Ekonomi"},{word:"FAİZ",cat:"Ekonomi"},
+    {word:"KREDİ",cat:"Ekonomi"},{word:"YATIRIM",cat:"Ekonomi"},{word:"SERVET",cat:"Ekonomi"},
+    {word:"BAŞARILI",cat:"Kavram"},{word:"BAĞIMSIZ",cat:"Kavram"},{word:"ADALETLİ",cat:"Kavram"},
+    {word:"EŞİTLİK",cat:"Kavram"},{word:"KARDEŞLİK",cat:"Kavram"},{word:"DAYANIŞMA",cat:"Kavram"},
+    {word:"HOŞGÖRÜ",cat:"Kavram"},{word:"SAYGI",cat:"Kavram"},{word:"DÜRÜSTLÜK",cat:"Kavram"},
+    {word:"CESARET",cat:"Duygu"},{word:"SABIR",cat:"Duygu"},{word:"UMUT",cat:"Duygu"},
+    {word:"SEVİNÇ",cat:"Duygu"},{word:"MUTLULUK",cat:"Duygu"},{word:"ÖZLEM",cat:"Duygu"},
+    {word:"NOSTALJİ",cat:"Duygu"},{word:"MERAK",cat:"Duygu"},{word:"HAYRANLIK",cat:"Duygu"},
+    {word:"ŞAŞKINLIK",cat:"Duygu"},{word:"UTANÇ",cat:"Duygu"},{word:"PİŞMANLIK",cat:"Duygu"},
+    {word:"KISKANÇLIK",cat:"Duygu"},{word:"NEFRET",cat:"Duygu"},{word:"KORKU",cat:"Duygu"},
+    {word:"ENDİŞE",cat:"Duygu"},{word:"PANİK",cat:"Duygu"},{word:"STRES",cat:"Duygu"},
+    {word:"RAHATLAMA",cat:"Duygu"},{word:"HUZUR",cat:"Duygu"},{word:"MUTSUZLUK",cat:"Duygu"},
+    {word:"KEDER",cat:"Duygu"},{word:"MEMNUNİYET",cat:"Duygu"},{word:"TATMİN",cat:"Duygu"},
+    {word:"ÖZGÜVEN",cat:"Duygu"},{word:"KARMAŞIKLIK",cat:"Kavram"},{word:"BASİTLİK",cat:"Kavram"},
+    {word:"DERİNLİK",cat:"Kavram"},{word:"GENİŞLİK",cat:"Kavram"},{word:"UZUNLUK",cat:"Kavram"},
+    {word:"KISALIK",cat:"Kavram"},{word:"YÜKSEKLİK",cat:"Kavram"},{word:"AĞIRLIK",cat:"Kavram"},
+    {word:"HAFİFLİK",cat:"Kavram"},{word:"AKIŞ",cat:"Fizik"},{word:"BASINÇ",cat:"Fizik"},
+    {word:"ELEKTRİK",cat:"Fizik"},{word:"MANYETİZMA",cat:"Fizik"},{word:"YERÇEKİMİ",cat:"Fizik"},
+    {word:"IŞINLAMA",cat:"Fizik"},{word:"KİMYASAL",cat:"Kimya"},{word:"ELEMENT",cat:"Kimya"},
+    {word:"BİLEŞİK",cat:"Kimya"},{word:"KARIŞIM",cat:"Kimya"},{word:"ERİYİK",cat:"Kimya"},
+    {word:"ASİT",cat:"Kimya"},{word:"OKSİJEN",cat:"Kimya"},{word:"HİDROJEN",cat:"Kimya"},
+    {word:"KARBON",cat:"Kimya"},{word:"AZOT",cat:"Kimya"},{word:"FOSFOR",cat:"Kimya"},
+    {word:"KÜKÜRT",cat:"Kimya"},{word:"BAKIR",cat:"Kimya"},{word:"ÇİNKO",cat:"Kimya"},
+    {word:"ALTIN",cat:"Kimya"},{word:"GÜMÜŞ",cat:"Kimya"},{word:"PLATİN",cat:"Kimya"},
+    {word:"URANYUM",cat:"Kimya"},{word:"RADYOAKTİF",cat:"Kimya"},{word:"NÜKLEER",cat:"Kimya"},
+    {word:"FÜZYON",cat:"Kimya"},{word:"ENERJİ",cat:"Fizik"},{word:"SÜRTÜNME",cat:"Fizik"},
+    {word:"İVME",cat:"Fizik"},{word:"DALGA",cat:"Fizik"},{word:"TİTREŞİM",cat:"Fizik"},
+    {word:"REZONANS",cat:"Fizik"},{word:"FREKANS",cat:"Fizik"},{word:"VOLTAJ",cat:"Fizik"},
+    {word:"DİRENÇ",cat:"Fizik"},{word:"ISI",cat:"Fizik"},{word:"ENTROPİ",cat:"Fizik"},
+    {word:"MÜHENDİSLİK",cat:"Bilim"},{word:"FİZİK",cat:"Bilim"},{word:"KİMYA",cat:"Bilim"},
+    {word:"OLASILIK",cat:"Bilim"},{word:"FELSEFİ",cat:"Bilim"},
+    {word:"SANAYİ",cat:"Ekonomi"},{word:"SOSYALLEŞME",cat:"Kavram"},
+    {word:"KÜRESELLEŞME",cat:"Kavram"},{word:"MODERNİZASYON",cat:"Tarih"},{word:"SEKÜLERLEŞME",cat:"Kavram"},
+    {word:"DEMOKRATİZM",cat:"Siyasi"},{word:"TOTALİTARİZM",cat:"Siyasi"},
+    {word:"LİBERALİZM",cat:"Siyasi"},{word:"SOSYALİZM",cat:"Siyasi"},
+    {word:"KAPİTALİZM",cat:"Siyasi"},{word:"MARKSİZM",cat:"Siyasi"},{word:"ANARŞİZM",cat:"Siyasi"},
+    {word:"MİLLİYETÇİLİK",cat:"Siyasi"},{word:"FEMİNİZM",cat:"Siyasi"},{word:"ÇEVRECİLİK",cat:"Siyasi"},
+  ],
+};
+
+
+// ── LANGUAGE SYSTEM ────────────────────────────────────────────────────────
+const _urlLang = new URLSearchParams(window.location.search).get('lang');
+let lang = (_urlLang === 'en' || _urlLang === 'tr') ? _urlLang : (localStorage.getItem('refo_lang') || 'tr');
+
+const wordBankEN = {
+  easy: [
+    {word:"APPLE",cat:"Fruit"},{word:"BREAD",cat:"Food"},{word:"CHAIR",cat:"Furniture"},
+    {word:"DANCE",cat:"Art"},{word:"EAGLE",cat:"Animal"},{word:"FLAME",cat:"Nature"},
+    {word:"GRAPE",cat:"Fruit"},{word:"HEART",cat:"Body"},{word:"IMAGE",cat:"Concept"},
+    {word:"JUICE",cat:"Drink"},{word:"KNIFE",cat:"Object"},{word:"LEMON",cat:"Fruit"},
+    {word:"MELON",cat:"Fruit"},{word:"NIGHT",cat:"Time"},{word:"OCEAN",cat:"Nature"},
+    {word:"PIANO",cat:"Music"},{word:"QUEEN",cat:"Person"},{word:"RIVER",cat:"Nature"},
+    {word:"SHARK",cat:"Animal"},{word:"TIGER",cat:"Animal"},{word:"TULIP",cat:"Plant"},
+    {word:"UNCLE",cat:"Person"},{word:"VAPOR",cat:"Nature"},{word:"WAFER",cat:"Food"},
+    {word:"YACHT",cat:"Transport"},{word:"ZEBRA",cat:"Animal"},{word:"ANGEL",cat:"Concept"},
+    {word:"BEACH",cat:"Place"},{word:"CLOCK",cat:"Object"},{word:"DAISY",cat:"Plant"},
+    {word:"EARTH",cat:"Nature"},{word:"FAIRY",cat:"Concept"},{word:"GIANT",cat:"Concept"},
+    {word:"HONEY",cat:"Food"},{word:"IVORY",cat:"Material"},{word:"JEWEL",cat:"Object"},
+    {word:"KITTY",cat:"Animal"},{word:"LASER",cat:"Tech"},{word:"MAGIC",cat:"Concept"},
+    {word:"NORTH",cat:"Direction"},{word:"OLIVE",cat:"Food"},{word:"PANEL",cat:"Object"},
+    {word:"QUILT",cat:"Object"},{word:"RADAR",cat:"Tech"},{word:"SALAD",cat:"Food"},
+    {word:"TOAST",cat:"Food"},{word:"UNIVERSE",cat:"Space"},{word:"VISOR",cat:"Object"},
+    {word:"WATER",cat:"Nature"},{word:"XENON",cat:"Science"},{word:"YEAST",cat:"Food"},
+    {word:"ZONAL",cat:"Concept"},{word:"AMBER",cat:"Color"},{word:"BLAZE",cat:"Nature"},
+    {word:"CLOUD",cat:"Weather"},{word:"DENIM",cat:"Clothing"},{word:"EMBER",cat:"Nature"},
+    {word:"FLUTE",cat:"Music"},{word:"GLOVE",cat:"Clothing"},{word:"HERON",cat:"Animal"},
+    {word:"INBOX",cat:"Tech"},{word:"JOKER",cat:"Person"},{word:"KOALA",cat:"Animal"},
+    {word:"LLAMA",cat:"Animal"},{word:"MANOR",cat:"Place"},{word:"NOVEL",cat:"Book"},
+    {word:"OTTER",cat:"Animal"},{word:"PIXEL",cat:"Tech"},{word:"QUAIL",cat:"Animal"},
+    {word:"RAVEN",cat:"Animal"},{word:"STORK",cat:"Animal"},{word:"TORCH",cat:"Object"},
+    {word:"ULTRA",cat:"Concept"},{word:"VIOLA",cat:"Music"},{word:"WALTZ",cat:"Dance"},
+    {word:"EXTRA",cat:"Concept"},{word:"YODEL",cat:"Music"},{word:"ZILCH",cat:"Concept"},
+    {word:"ACORN",cat:"Nature"},{word:"BARON",cat:"Person"},{word:"CEDAR",cat:"Plant"},
+    {word:"DELTA",cat:"Nature"},{word:"ELFIN",cat:"Concept"},{word:"FROST",cat:"Weather"},
+    {word:"GUAVA",cat:"Fruit"},{word:"HYENA",cat:"Animal"},{word:"IGLOO",cat:"Place"},
+    {word:"JOUST",cat:"Sport"},{word:"KARMA",cat:"Concept"},{word:"LAPEL",cat:"Clothing"},
+    {word:"MANGO",cat:"Fruit"},{word:"NUDGE",cat:"Action"},{word:"OZONE",cat:"Science"},
+    {word:"PRISM",cat:"Science"},{word:"QUOTA",cat:"Concept"},{word:"RIDGE",cat:"Nature"},
+    {word:"SCONE",cat:"Food"},{word:"TABBY",cat:"Animal"},{word:"UMBRA",cat:"Science"},
+    {word:"VENOM",cat:"Nature"},{word:"WALRUS",cat:"Animal"},{word:"EXPAT",cat:"Person"},
+    {word:"YEOMAN",cat:"Person"},{word:"ABBOT",cat:"Person"},{word:"BIRCH",cat:"Plant"},
+    {word:"CAIRN",cat:"Nature"},{word:"DOWRY",cat:"Concept"},{word:"ENVOY",cat:"Person"},
+    {word:"FLORA",cat:"Nature"},{word:"GHOUL",cat:"Concept"},{word:"HAVEN",cat:"Place"},
+    {word:"ISLET",cat:"Nature"},{word:"JUMBO",cat:"Concept"},{word:"KNACK",cat:"Concept"},
+  ],
+  medium: [
+    {word:"BRIDGE",cat:"Structure"},{word:"CASTLE",cat:"Place"},{word:"DESERT",cat:"Nature"},
+    {word:"ENERGY",cat:"Science"},{word:"FOREST",cat:"Nature"},{word:"GARDEN",cat:"Place"},
+    {word:"HARBOR",cat:"Place"},{word:"INSECT",cat:"Animal"},{word:"JUNGLE",cat:"Nature"},
+    {word:"KERNEL",cat:"Object"},{word:"LANCER",cat:"Person"},{word:"MARBLE",cat:"Material"},
+    {word:"NARROW",cat:"Concept"},{word:"ORANGE",cat:"Fruit"},{word:"PARROT",cat:"Animal"},
+    {word:"QUARTZ",cat:"Material"},{word:"RABBIT",cat:"Animal"},{word:"SALMON",cat:"Animal"},
+    {word:"TALENT",cat:"Concept"},{word:"UKULELE",cat:"Music"},{word:"VELVET",cat:"Material"},
+    {word:"WALNUT",cat:"Food"},{word:"XYSTER",cat:"Object"},{word:"YELLOW",cat:"Color"},
+    {word:"ZIPPER",cat:"Object"},{word:"ARMOUR",cat:"Object"},{word:"BASKET",cat:"Object"},
+    {word:"CANDLE",cat:"Object"},{word:"DAGGER",cat:"Object"},{word:"EMPIRE",cat:"History"},
+    {word:"FAMINE",cat:"Concept"},{word:"GOBLIN",cat:"Concept"},{word:"HAMLET",cat:"Place"},
+    {word:"ISLAND",cat:"Nature"},{word:"JIGSAW",cat:"Object"},{word:"KNIGHT",cat:"Person"},
+    {word:"LAGOON",cat:"Nature"},{word:"MAGNET",cat:"Science"},{word:"NOODLE",cat:"Food"},
+    {word:"OYSTER",cat:"Animal"},{word:"PELICAN",cat:"Animal"},{word:"QUIVER",cat:"Object"},
+    {word:"RIDDLE",cat:"Concept"},{word:"SPIDER",cat:"Animal"},{word:"TEMPLE",cat:"Place"},
+    {word:"UNIQUE",cat:"Concept"},{word:"VALLEY",cat:"Nature"},{word:"WIZARD",cat:"Person"},
+    {word:"EXOTIC",cat:"Concept"},{word:"YOGURT",cat:"Food"},{word:"ANCHOR",cat:"Object"},
+    {word:"BONSAI",cat:"Plant"},{word:"CIRCUS",cat:"Art"},{word:"DONKEY",cat:"Animal"},
+    {word:"ESCAPE",cat:"Action"},{word:"FALCON",cat:"Animal"},{word:"GRAVEL",cat:"Material"},
+    {word:"HURDLE",cat:"Sport"},{word:"IMPACT",cat:"Concept"},{word:"JOCKEY",cat:"Person"},
+    {word:"KITTEN",cat:"Animal"},{word:"LUMBER",cat:"Material"},{word:"MUFFIN",cat:"Food"},
+    {word:"NOODLE",cat:"Food"},{word:"ORIGIN",cat:"Concept"},{word:"PUFFIN",cat:"Animal"},
+    {word:"QUORUM",cat:"Concept"},{word:"ROBUST",cat:"Concept"},{word:"SUMMIT",cat:"Nature"},
+    {word:"TUNDRA",cat:"Nature"},{word:"UPBEAT",cat:"Concept"},{word:"VENDOR",cat:"Person"},
+    {word:"WOMBAT",cat:"Animal"},{word:"YELPER",cat:"Person"},{word:"ZEPHYR",cat:"Nature"},
+    {word:"ALBINO",cat:"Concept"},{word:"BUDGET",cat:"Economy"},{word:"CANOPY",cat:"Nature"},
+    {word:"DECADE",cat:"Time"},{word:"ERRAND",cat:"Action"},{word:"FOSSIL",cat:"Science"},
+    {word:"GROTTO",cat:"Nature"},{word:"HYBRID",cat:"Concept"},{word:"INNATE",cat:"Concept"},
+    {word:"JACKAL",cat:"Animal"},{word:"LOCKET",cat:"Object"},{word:"MORBID",cat:"Concept"},
+    {word:"NEBULA",cat:"Space"},{word:"OBLIQUE",cat:"Concept"},{word:"PARDON",cat:"Concept"},
+    {word:"QUARRY",cat:"Place"},{word:"RESCUE",cat:"Action"},{word:"STEREO",cat:"Tech"},
+    {word:"THRONE",cat:"Object"},{word:"UNVEIL",cat:"Action"},{word:"VORTEX",cat:"Science"},
+    {word:"WARDEN",cat:"Person"},{word:"ABRUPT",cat:"Concept"},{word:"BALLOT",cat:"Politics"},
+    {word:"CANTEEN",cat:"Object"},{word:"DEBRIS",cat:"Concept"},{word:"ELAPSE",cat:"Concept"},
+    {word:"GALLOP",cat:"Action"},{word:"HERMIT",cat:"Person"},{word:"INVERT",cat:"Action"},
+    {word:"LAUNCH",cat:"Action"},{word:"MUTTON",cat:"Food"},{word:"NICKEL",cat:"Material"},
+    {word:"PELLET",cat:"Object"},{word:"RUCKUS",cat:"Concept"},{word:"SINKER",cat:"Object"},
+    {word:"TURBAN",cat:"Clothing"},{word:"UNFURL",cat:"Action"},{word:"VISAGE",cat:"Body"},
+    {word:"WICKER",cat:"Material"},{word:"AURORA",cat:"Nature"},{word:"BRONZE",cat:"Material"},
+    {word:"CACTUS",cat:"Plant"},{word:"DOODLE",cat:"Art"},{word:"FUNGUS",cat:"Nature"},
+    {word:"MIRAGE",cat:"Nature"},{word:"NYMPH",cat:"Concept"},{word:"PLUNGE",cat:"Action"},
+    {word:"PYTHON",cat:"Animal"},{word:"SHROUD",cat:"Object"},{word:"SWIVEL",cat:"Object"},
+    {word:"TROPHY",cat:"Object"},{word:"TYPHOON",cat:"Weather"},{word:"UTOPIA",cat:"Concept"},
+    {word:"VIKING",cat:"History"},{word:"WALNUT",cat:"Food"},
+  ],
+  hard: [
+    {word:"ABANDON",cat:"Action"},{word:"BALANCE",cat:"Concept"},{word:"CAPTAIN",cat:"Person"},
+    {word:"DIAMOND",cat:"Material"},{word:"ELEMENT",cat:"Science"},{word:"FREEDOM",cat:"Concept"},
+    {word:"GLASSES",cat:"Object"},{word:"HARMONY",cat:"Music"},{word:"INSPIRE",cat:"Action"},
+    {word:"JOURNEY",cat:"Action"},{word:"KINGDOM",cat:"Place"},{word:"LANTERN",cat:"Object"},
+    {word:"MYSTERY",cat:"Concept"},{word:"NETWORK",cat:"Tech"},{word:"ODYSSEY",cat:"Concept"},
+    {word:"PATTERN",cat:"Concept"},{word:"QUANTUM",cat:"Science"},{word:"REACTOR",cat:"Science"},
+    {word:"SILENCE",cat:"Concept"},{word:"TEXTURE",cat:"Concept"},{word:"UMBRAGE",cat:"Concept"},
+    {word:"VOLTAGE",cat:"Science"},{word:"WARRIOR",cat:"Person"},{word:"EXTREME",cat:"Concept"},
+    {word:"YOUNGER",cat:"Concept"},{word:"ADMIRAL",cat:"Person"},{word:"BLOSSOM",cat:"Nature"},
+    {word:"CEMENT",cat:"Material"},{word:"DYNASTY",cat:"History"},{word:"EMPEROR",cat:"Person"},
+    {word:"FANTASY",cat:"Concept"},{word:"GRAVITY",cat:"Science"},{word:"HORIZON",cat:"Nature"},
+    {word:"INTEGER",cat:"Math"},{word:"JUSTICE",cat:"Law"},{word:"KNUCKLE",cat:"Body"},
+    {word:"LIBERTY",cat:"Concept"},{word:"MEANING",cat:"Concept"},{word:"NARRATE",cat:"Action"},
+    {word:"OPINION",cat:"Concept"},{word:"PREDICT",cat:"Action"},{word:"QUALITY",cat:"Concept"},
+    {word:"RESPOND",cat:"Action"},{word:"STELLAR",cat:"Space"},{word:"THUNDER",cat:"Weather"},
+    {word:"UNCOVER",cat:"Action"},{word:"VIBRANT",cat:"Concept"},{word:"WISTFUL",cat:"Emotion"},
+    {word:"EXTINCT",cat:"Science"},{word:"YOUTHFUL",cat:"Concept"},{word:"ABSOLVE",cat:"Action"},
+    {word:"BENEATH",cat:"Concept"},{word:"CALCIUM",cat:"Science"},{word:"DISTANT",cat:"Concept"},
+    {word:"ECOLOGY",cat:"Science"},{word:"FURNACE",cat:"Object"},{word:"GLACIER",cat:"Nature"},
+    {word:"HISTORY",cat:"Concept"},{word:"IMPULSE",cat:"Science"},{word:"JUBILEE",cat:"Concept"},
+    {word:"LANDFILL",cat:"Place"},{word:"MONARCH",cat:"Person"},{word:"NUCLEAR",cat:"Science"},
+    {word:"OSMOSIS",cat:"Science"},{word:"PHANTOM",cat:"Concept"},{word:"RESIDUE",cat:"Concept"},
+    {word:"SCHOLAR",cat:"Person"},{word:"TACTICS",cat:"Concept"},{word:"TURBINE",cat:"Tech"},
+    {word:"VACCINE",cat:"Science"},{word:"WHISPER",cat:"Action"},{word:"EXCLUDE",cat:"Action"},
+    {word:"ANTIQUE",cat:"Object"},{word:"BOYCOTT",cat:"Action"},{word:"CLUSTER",cat:"Concept"},
+    {word:"DEFLECT",cat:"Action"},{word:"ENVIOUS",cat:"Emotion"},{word:"FERMENT",cat:"Science"},
+    {word:"GROTESQUE",cat:"Concept"},{word:"HOSTILE",cat:"Concept"},{word:"IMPLODE",cat:"Action"},
+    {word:"JASMINE",cat:"Plant"},{word:"LULLABY",cat:"Music"},{word:"MARSHAL",cat:"Person"},
+    {word:"NIGHTLY",cat:"Time"},{word:"ORBITAL",cat:"Space"},{word:"PARADOX",cat:"Concept"},
+    {word:"QUICKEN",cat:"Action"},{word:"RESERVE",cat:"Action"},{word:"SCANDAL",cat:"Concept"},
+    {word:"TRIUMPH",cat:"Concept"},{word:"URGE",cat:"Concept"},{word:"VIBRATO",cat:"Music"},
+    {word:"WELFARE",cat:"Concept"},{word:"ANXIETY",cat:"Emotion"},{word:"BRAVERY",cat:"Emotion"},
+    {word:"CHARITY",cat:"Concept"},{word:"DESPAIR",cat:"Emotion"},{word:"EMPATHY",cat:"Emotion"},
+    {word:"FRUGAL",cat:"Concept"},{word:"GLAMOUR",cat:"Concept"},{word:"HABITAT",cat:"Nature"},
+    {word:"ILLUSION",cat:"Concept"},{word:"JUSTIFY",cat:"Action"},{word:"KINETIC",cat:"Science"},
+    {word:"LEXICON",cat:"Language"},{word:"MIGRATE",cat:"Action"},{word:"NULLIFY",cat:"Action"},
+    {word:"OVERLAP",cat:"Concept"},{word:"PINNACLE",cat:"Concept"},{word:"QUARREL",cat:"Action"},
+    {word:"RECRUIT",cat:"Action"},{word:"SUBSIST",cat:"Action"},{word:"TERRAIN",cat:"Nature"},
+    {word:"UNIFORM",cat:"Clothing"},{word:"VERDICT",cat:"Law"},{word:"WITNESS",cat:"Person"},
+    {word:"ABOLISH",cat:"Action"},{word:"BESIEGE",cat:"History"},{word:"COMPLEX",cat:"Concept"},
+    {word:"DEVOTED",cat:"Emotion"},{word:"ECLIPSE",cat:"Space"},{word:"FORMULA",cat:"Science"},
+    {word:"GENESIS",cat:"Concept"},{word:"HERETIC",cat:"Person"},{word:"IMMENSE",cat:"Concept"},
+    {word:"KEYNOTE",cat:"Concept"},{word:"LABELED",cat:"Concept"},{word:"MANDATE",cat:"Law"},
+    {word:"NOTABLE",cat:"Concept"},{word:"OUTCOME",cat:"Concept"},{word:"PROTEST",cat:"Action"},
+    {word:"RADIANT",cat:"Concept"},{word:"SURPLUS",cat:"Economy"},{word:"THERMAL",cat:"Science"},
+    {word:"UPRIGHT",cat:"Concept"},{word:"VALIANT",cat:"Concept"},{word:"WARLORD",cat:"Person"},
+  ],
+};
+
+const translations = {
+  tr: {
+    logo: 'WordStorm',
+    tagline: 'Think Fast · Spell Faster',
+    menuTitle: 'Zorluk Seç',
+    diffEasy: 'Kolay', diffMed: 'Orta', diffHard: 'Zor',
+    sec: 'sn',
+    startBtn: 'OYNA',
+    howTitle: 'Nasıl Oynanır?',
+    howItems: [
+      'Karışık harf kutucukları belirir',
+      'Harflere <strong>sırayla tıkla</strong> — kelimeyi yukarıda oluştur',
+      'Son harfe tıklayarak geri alabilirsin',
+      'Kelime tamamlanınca otomatik kontrol edilir!'
+    ],
+    hudScore: 'Puan', hudWord: 'Kelime',
+    slotsLabel: 'Cevabın', poolLabel: 'Harfler',
+    clearBtn: '✕ Temizle', shuffleBtn: '🔀 Karıştır',
+    hintBtn: 'İpucu', hintCost: '−5 puan',
+    skipBtn: 'Geç', skipCost: '−10 puan',
+    statScore: 'Puan', statCorrect: 'Doğru',
+    statAvg: 'Ort. Süre', statFastest: 'En Hızlı',
+    statTotal: '⏱ Toplam Süre',
+    replayBtn: 'TEKRAR OYNA',
+    menuLink: '← Ana Menü',
+    feedbackCorrect: (pts) => `+${pts} puan! 🎉`,
+    feedbackWrong: 'Yanlış! Tekrar dene 💨',
+    feedbackHint: 'İpucu! (−5 puan) 💡',
+    feedbackSkip: (w) => `Geçildi! ➜ ${w}`,
+    feedbackTime: (w) => `Süre doldu! ➜ ${w}`,
+    resultTitles: ['Yeniden Dene!', 'Biraz Daha Pratik!', 'İyi Gidiyorsun!', 'Harika!', 'Efsane!'],
+    bestBadge: (diff, score) => `🏆 En İyi (${diff}): ${score}`,
+    diffNames: {easy:'Kolay', medium:'Orta', hard:'Zor'},
+    timeUnit: (t) => t>=60 ? Math.floor(t/60)+'d '+(t%60)+'s' : t+'s',
+  },
+  en: {
+    logo: 'WordStorm',
+    tagline: 'Think Fast · Spell Faster',
+    menuTitle: 'Select Difficulty',
+    diffEasy: 'Easy', diffMed: 'Medium', diffHard: 'Hard',
+    sec: 's',
+    startBtn: 'PLAY',
+    howTitle: 'How to Play?',
+    howItems: [
+      'Scrambled letter tiles appear',
+      '<strong>Tap letters in order</strong> — build the word above',
+      'Tap the last slot to remove a letter',
+      'Word is checked automatically when complete!'
+    ],
+    hudScore: 'Score', hudWord: 'Word',
+    slotsLabel: 'Your Answer', poolLabel: 'Letters',
+    clearBtn: '✕ Clear', shuffleBtn: '🔀 Shuffle',
+    hintBtn: 'Hint', hintCost: '−5 pts',
+    skipBtn: 'Skip', skipCost: '−10 pts',
+    statScore: 'Score', statCorrect: 'Correct',
+    statAvg: 'Avg Time', statFastest: 'Fastest',
+    statTotal: '⏱ Total Time',
+    replayBtn: 'PLAY AGAIN',
+    menuLink: '← Main Menu',
+    feedbackCorrect: (pts) => `+${pts} points! 🎉`,
+    feedbackWrong: 'Wrong! Try again 💨',
+    feedbackHint: 'Hint used! (−5 pts) 💡',
+    feedbackSkip: (w) => `Skipped! ➜ ${w}`,
+    feedbackTime: (w) => `Time's up! ➜ ${w}`,
+    resultTitles: ['Try Again!', 'Keep Practicing!', 'Good Going!', 'Amazing!', 'Legendary!'],
+    bestBadge: (diff, score) => `🏆 Best (${diff}): ${score}`,
+    diffNames: {easy:'Easy', medium:'Medium', hard:'Hard'},
+    timeUnit: (t) => t>=60 ? Math.floor(t/60)+'m '+(t%60)+'s' : t+'s',
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('btnTR').classList.toggle('active', l==='tr');
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const t = translations[lang];
+  document.getElementById('logoText').textContent = t.logo;
+  document.getElementById('taglineText').textContent = t.tagline;
+  document.getElementById('menuTitle').textContent = t.menuTitle;
+  document.getElementById('diffEasyName').textContent = t.diffEasy;
+  document.getElementById('diffMedName').textContent = t.diffMed;
+  document.getElementById('diffHardName').textContent = t.diffHard;
+  document.getElementById('diffEasyTime').textContent = '45 ' + t.sec;
+  document.getElementById('diffMedTime').textContent = '30 ' + t.sec;
+  document.getElementById('diffHardTime').textContent = '20 ' + t.sec;
+  document.getElementById('startBtn').innerHTML = t.startBtn + ' <span class="play-icon"></span>';
+  document.getElementById('howTitle').textContent = t.howTitle;
+  document.getElementById('howList').innerHTML = t.howItems.map(i=>`<li>${i}</li>`).join('');
+  document.getElementById('hudScore').textContent = t.hudScore;
+  document.getElementById('hudWord').textContent = t.hudWord;
+  document.getElementById('slotsLabel').textContent = t.slotsLabel;
+  document.getElementById('poolLabel').textContent = t.poolLabel;
+  document.getElementById('clearBtn').textContent = t.clearBtn;
+  document.getElementById('shuffleBtn').textContent = t.shuffleBtn;
+  document.getElementById('hintBtnText').textContent = t.hintBtn;
+  document.getElementById('hintCost').textContent = t.hintCost;
+  document.getElementById('skipBtnText').textContent = t.skipBtn;
+  document.getElementById('skipCost').textContent = t.skipCost;
+  document.getElementById('statScore').textContent = t.statScore;
+  document.getElementById('statCorrect').textContent = t.statCorrect;
+  document.getElementById('statAvg').textContent = t.statAvg;
+  document.getElementById('statFastest').textContent = t.statFastest;
+  document.getElementById('statTotal').textContent = t.statTotal;
+  document.getElementById('replayBtn').innerHTML = t.replayBtn + ' <span class="play-icon"></span>';
+  document.getElementById('menuLink').textContent = t.menuLink;
+  // Re-render result screen if it's currently visible
+  if(document.getElementById('resultScreen').classList.contains('active')) renderResult();
+}
+
+function getWordBank() {
+  return lang === 'en' ? wordBankEN : wordBank;
+}
+
+const ROUND_COUNT = 10;
+const DIFF_TIMES  = {easy:45, medium:30, hard:20};
+const DIFF_POINTS = {easy:100, medium:150, hard:200};
+
+let difficulty='easy', queue=[], current=null, currentIdx=0;
+let score=0, correctCount=0, timeLeft=45, maxTime=45;
+let timerInterval=null, hintCount=0, times=[], roundStart=0;
+let shuffledLetters=[], answerArr=[];
+
+const bests = JSON.parse(localStorage.getItem('kasirga_bests')||'{"easy":0,"medium":0,"hard":0}');
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function shuffleArr(arr) {
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function anagramOf(word) {
+  let a;
+  do { a=shuffleArr([...word]); } while(a.join('')===word);
+  return a;
+}
+
+// tile/slot size scales with word length so nothing wraps
+function tileSize(len) {
+  // Available width ≈ min(540, screen) - 32px padding - gaps
+  const availW = Math.min(window.innerWidth, 540) - 32;
+  const gap = 4;
+  // Compute max tile width to fit all tiles in one row
+  const maxW = Math.floor((availW - gap * (len - 1)) / len);
+  // Clamp between 22 and 52
+  const w = Math.max(22, Math.min(52, maxW));
+  const h = Math.round(w * 1.15);
+  // Font size proportional to width
+  const fs = Math.max(0.75, Math.min(1.85, w * 0.036)) + 'rem';
+  return {w, h, fs};
+}
+
+// ── SCREENS ────────────────────────────────────────────────────────────────
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showMenu(){clearInterval(timerInterval);showScreen('menuScreen');}
+function selectDiff(btn){document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');difficulty=btn.dataset.diff;}
+
+// ── START ──────────────────────────────────────────────────────────────────
+function startGame(){
+  score=0;correctCount=0;currentIdx=0;times=[];
+  queue=shuffleArr(getWordBank()[difficulty]).slice(0,ROUND_COUNT);
+  maxTime=DIFF_TIMES[difficulty];
+  showScreen('gameScreen');
+  playSound('start');
+  loadWord();
+}
+
+// ── LOAD WORD ──────────────────────────────────────────────────────────────
+function loadWord(){
+  clearInterval(timerInterval);
+  hintCount=0; answerArr=[]; shuffledLetters=[];
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+
+  current=queue[currentIdx];
+  const letters=anagramOf(current.word);
+  document.getElementById('categoryBadge').textContent=current.cat;
+  document.getElementById('wordNum').textContent=currentIdx+1;
+  document.getElementById('progressBar').style.width=(currentIdx/ROUND_COUNT*100)+'%';
+  updateScoreDisplay();
+
+  renderSlots(letters.length);
+  answerArr = new Array(letters.length).fill(null);
+  renderPool(letters);
+  startTimer();
+  roundStart=Date.now();
+}
+
+function renderSlots(len){
+  const el=document.getElementById('answerSlots');
+  el.innerHTML='';
+  const sz=tileSize(len);
+  for(let i=0;i<len;i++){
+    const s=document.createElement('div');
+    s.className='slot empty';
+    s.style.width=sz.w+'px'; s.style.height=sz.h+'px'; s.style.fontSize=sz.fs;
+    s.dataset.idx=i;
+    s.onclick=()=>removeFromSlot(i);
+    el.appendChild(s);
+  }
+}
+
+function getSlotEl(idx){return document.getElementById('answerSlots').children[idx];}
+
+function renderPool(letters){
+  const el=document.getElementById('letterPool');
+  el.innerHTML='';
+  const sz=tileSize(letters.length);
+  shuffledLetters=letters.map((letter,i)=>{
+    const tile=document.createElement('div');
+    tile.className='tile';
+    tile.textContent=letter;
+    tile.style.width=sz.w+'px'; tile.style.height=sz.h+'px'; tile.style.fontSize=sz.fs;
+    tile.style.animationDelay=(i*0.045)+'s';
+    tile.dataset.idx=i;
+    tile.onclick=()=>addToSlot(i);
+    el.appendChild(tile);
+    return{letter,used:false,tileEl:tile};
+  });
+}
+
+// ── TILE INTERACTION ───────────────────────────────────────────────────────
+function addToSlot(tileIdx){
+  const tile=shuffledLetters[tileIdx];
+  if(tile.used)return;
+  // İlk boş (null) pozisyonu bul
+  const pos=answerArr.findIndex(x=>x===null);
+  if(pos===-1)return;
+  tile.used=true; tile.tileEl.classList.add('used');
+  answerArr[pos]={letter:tile.letter,srcIdx:tileIdx,type:'player'};
+  const slotEl=getSlotEl(pos);
+  slotEl.textContent=tile.letter; slotEl.classList.remove('empty');
+  playSound('click');
+  if(answerArr.every(x=>x!==null)) setTimeout(checkAnswer,80);
+}
+
+function removeFromSlot(slotIdx){
+  // En son oyuncu tarafından doldurulmuş slotu bul
+  let lastPlayerIdx=-1;
+  for(let i=answerArr.length-1;i>=0;i--){
+    if(answerArr[i]&&answerArr[i].type==='player'){lastPlayerIdx=i;break;}
+  }
+  if(lastPlayerIdx===-1)return;
+  const{srcIdx}=answerArr[lastPlayerIdx];
+  shuffledLetters[srcIdx].used=false; shuffledLetters[srcIdx].tileEl.classList.remove('used');
+  answerArr[lastPlayerIdx]=null;
+  const slotEl=getSlotEl(lastPlayerIdx);
+  slotEl.textContent=''; slotEl.classList.add('empty');
+}
+
+function clearAnswer(){
+  answerArr.forEach((x,i)=>{
+    if(x&&x.type==='player'){
+      shuffledLetters[x.srcIdx].used=false;
+      shuffledLetters[x.srcIdx].tileEl.classList.remove('used');
+      answerArr[i]=null;
+      const slotEl=getSlotEl(i);
+      slotEl.textContent=''; slotEl.classList.add('empty');
+    }
+  });
+}
+
+function doShuffle(){
+  const pool=document.getElementById('letterPool');
+  const unused=shuffledLetters.map((t,i)=>t.used?null:i).filter(i=>i!==null);
+  const sh=shuffleArr(unused);
+  shuffledLetters.forEach((t,i)=>{t.tileEl.style.order=t.used?-1:sh.indexOf(i);});
+  pool.style.display='none';pool.offsetHeight;pool.style.display='flex';
+}
+
+// ── CHECK ─────────────────────────────────────────────────────────────────
+function checkAnswer(){
+  const answer=answerArr.map(x=>x?x.letter:'').join('');
+  const target=current.word;
+  if(answer===target){
+    clearInterval(timerInterval);
+    const elapsed=Math.round((Date.now()-roundStart)/1000);
+    times.push(elapsed); correctCount++;
+    const gained=Math.max(10,DIFF_POINTS[difficulty]+Math.max(0,Math.round(timeLeft*2))-(hintCount*5));
+    score+=gained; updateScoreDisplay();
+    flashSlots('correct-flash');
+    playSound('correct');
+    showFeedback(translations[lang].feedbackCorrect(gained),'ok');
+    if(Math.random()>0.4)spawnConfetti();
+    setTimeout(nextWord,1100);
+  } else {
+    flashSlots('wrong-flash');
+    playSound('wrong');
+    showFeedback(translations[lang].feedbackWrong,'err');
+    setTimeout(()=>{clearAnswer();document.getElementById('feedback').textContent='';},500);
+  }
+}
+
+function flashSlots(cls){
+  Array.from(document.getElementById('answerSlots').children).forEach(s=>{
+    s.classList.add(cls);setTimeout(()=>s.classList.remove(cls),400);
+  });
+}
+
+// ── TIMER ─────────────────────────────────────────────────────────────────
+let _lastWarnPlayed = false;
+function startTimer(){
+  timeLeft=maxTime; _lastWarnPlayed=false; updateTimerUI();
+  timerInterval=setInterval(()=>{
+    timeLeft--;updateTimerUI();
+    if(timeLeft===5 && !_lastWarnPlayed){ _lastWarnPlayed=true; playSound('warn'); }
+    if(timeLeft<=0){clearInterval(timerInterval);timeExpired();}
+  },1000);
+}
+function updateTimerUI(){
+  const pct=timeLeft/maxTime, circ=175.9;
+  document.getElementById('timerCircle').style.strokeDashoffset=circ*(1-pct);
+  document.getElementById('timerCircle').style.stroke=timeLeft<=5?'var(--red)':timeLeft<=10?'var(--yellow)':'var(--cyan)';
+  const n=document.getElementById('timerNum');
+  n.textContent=timeLeft; n.className='timer-num'+(timeLeft<=5?' warn':'');
+}
+function updateScoreDisplay(){document.getElementById('scoreDisplay').textContent=score;}
+function timeExpired(){times.push(maxTime);playSound('expire');showFeedback(translations[lang].feedbackTime(current.word),'err');setTimeout(nextWord,1800);}
+function nextWord(){currentIdx++;currentIdx>=ROUND_COUNT?showResult():loadWord();}
+
+// ── HINT / SKIP ────────────────────────────────────────────────────────────
+function useHint(){
+  // Boş pozisyonları bul
+  const emptyPositions = answerArr.map((x,i)=>x===null?i:-1).filter(i=>i!==-1);
+  if(!emptyPositions.length) return;
+
+  // Rastgele bir boş pozisyon seç
+  const pos = emptyPositions[Math.floor(Math.random()*emptyPositions.length)];
+  const targetLetter = [...current.word][pos];
+
+  // Havuzda bu harfe sahip kullanılmamış tile'ı bul
+  const tileIdx = shuffledLetters.findIndex(t => !t.used && t.letter === targetLetter);
+  if(tileIdx === -1) return;
+
+  // Tile'ı havuzda parlat
+  const tile = shuffledLetters[tileIdx];
+  tile.tileEl.classList.add('hint-glow');
+
+  setTimeout(()=>{
+    tile.used = true;
+    tile.tileEl.classList.remove('hint-glow');
+    tile.tileEl.classList.add('used');
+
+    answerArr[pos] = {letter: tile.letter, srcIdx: tileIdx, type: 'hint'};
+
+    const slotEl = getSlotEl(pos);
+    slotEl.textContent = tile.letter;
+    slotEl.classList.remove('empty');
+    slotEl.classList.add('hint-placed');
+
+    hintCount++;
+    score = Math.max(0, score - 5); updateScoreDisplay();
+    playSound('hint');
+    showFeedback(translations[lang].feedbackHint,'err');
+    setTimeout(()=>{ document.getElementById('feedback').textContent=''; }, 1200);
+
+    if(answerArr.every(x=>x!==null)) setTimeout(checkAnswer, 80);
+  }, 350);
+}
+function skipWord(){
+  clearInterval(timerInterval); times.push(maxTime);
+  score=Math.max(0,score-10); updateScoreDisplay();
+  playSound('skip');
+  showFeedback(translations[lang].feedbackSkip(current.word),'err');
+  setTimeout(nextWord,1500);
+}
+function showFeedback(msg,type){const el=document.getElementById('feedback');el.textContent=msg;el.className='feedback '+type;}
+
+// ── RESULT ─────────────────────────────────────────────────────────────────
+let lastResult = null;
+
+function showResult(){
+  clearInterval(timerInterval); showScreen('resultScreen');
+  setTimeout(()=>playSound('finish'), 200);
+  const total=times.reduce((a,b)=>a+b,0);
+  const avg=times.length?Math.round(total/times.length):0;
+  const fastest=times.length?Math.min(...times):0;
+  const pct=correctCount/ROUND_COUNT;
+  if(score>bests[difficulty]){bests[difficulty]=score;localStorage.setItem('kasirga_bests',JSON.stringify(bests));}
+  lastResult = {total, avg, fastest, pct, score, correctCount, difficulty};
+  renderResult();
+}
+
+function renderResult(){
+  if(!lastResult) return;
+  const {total, avg, fastest, pct, score, correctCount, difficulty} = lastResult;
+  const titles = translations[lang].resultTitles;
+  let emoji='😅',title=titles[0];
+  if(pct>=0.9){emoji='🏆';title=titles[4];}
+  else if(pct>=0.7){emoji='🎉';title=titles[3];}
+  else if(pct>=0.5){emoji='👍';title=titles[2];}
+  else if(pct>=0.3){emoji='🌤️';title=titles[1];}
+  document.getElementById('resultEmoji').textContent=emoji;
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('finalScore').textContent=score;
+  document.getElementById('correctCount').textContent=correctCount+'/'+ROUND_COUNT;
+  document.getElementById('avgTime').textContent=avg+'s';
+  document.getElementById('fastestTime').textContent=fastest+'s';
+  document.getElementById('totalTime').textContent=translations[lang].timeUnit(total);
+  const diffName=translations[lang].diffNames[difficulty];
+  document.getElementById('bestBadge').textContent=translations[lang].bestBadge(diffName,bests[difficulty]);
+}
+
+// ── SOUND SYSTEM ───────────────────────────────────────────────────────────
+let audioCtx = null;
+let soundEnabled = true;
+
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function toggleSound(){
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundToggleBtn');
+  if(soundEnabled){ btn.textContent='🔊'; btn.classList.add('on'); }
+  else { btn.textContent='🔇'; btn.classList.remove('on'); }
+  if(soundEnabled) playSound('click');
+}
+
+function playSound(type){
+  if(!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    switch(type){
+      case 'click': _tone(ctx, 880, 'sine', 0.08, now, 0.001, 0.08); break;
+      case 'correct': _correct(ctx, now); break;
+      case 'wrong':   _wrong(ctx, now); break;
+      case 'expire':  _expire(ctx, now); break;
+      case 'hint':    _hint(ctx, now); break;
+      case 'skip':    _skip(ctx, now); break;
+      case 'start':   _start(ctx, now); break;
+      case 'finish':  _finish(ctx, now); break;
+      case 'warn':    _tone(ctx, 440, 'square', 0.06, now, 0.001, 0.12); break;
+    }
+  } catch(e){}
+}
+
+function _tone(ctx, freq, type, gain, start, attack, decay){
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = type; o.frequency.setValueAtTime(freq, start);
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(gain, start+attack);
+  g.gain.exponentialRampToValueAtTime(0.001, start+attack+decay);
+  o.start(start); o.stop(start+attack+decay+0.01);
+}
+
+function _correct(ctx, now){
+  // Zafer melodisi: Do-Mi-Sol-Do (ascending)
+  const notes=[523,659,784,1047];
+  notes.forEach((f,i)=>_tone(ctx,f,'sine',0.15,now+i*0.1,0.005,0.18));
+  // Parlak vurgu
+  _tone(ctx,2093,'triangle',0.06,now+0.42,0.005,0.25);
+}
+
+function _wrong(ctx, now){
+  // Alçalan çift ses
+  _tone(ctx,330,'sawtooth',0.12,now,0.005,0.12);
+  _tone(ctx,220,'sawtooth',0.12,now+0.13,0.005,0.18);
+}
+
+function _expire(ctx, now){
+  // Düşen alarm
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type='sine';
+  o.frequency.setValueAtTime(600,now);
+  o.frequency.exponentialRampToValueAtTime(150,now+0.7);
+  g.gain.setValueAtTime(0.15,now);
+  g.gain.exponentialRampToValueAtTime(0.001,now+0.7);
+  o.start(now); o.stop(now+0.71);
+}
+
+function _hint(ctx, now){
+  // Mistik parıltı: iki ses bir arada
+  _tone(ctx,1318,'sine',0.1,now,0.01,0.2);
+  _tone(ctx,1047,'triangle',0.07,now+0.05,0.01,0.22);
+}
+
+function _skip(ctx, now){
+  _tone(ctx,523,'triangle',0.08,now,0.005,0.08);
+  _tone(ctx,392,'triangle',0.08,now+0.1,0.005,0.1);
+}
+
+function _start(ctx, now){
+  // Başlangıç fanfarı
+  [392,494,587,784].forEach((f,i)=>_tone(ctx,f,'sine',0.15,now+i*0.09,0.005,0.15));
+}
+
+function _finish(ctx, now){
+  // Bitiş fanfarı — çarpıcı melodi
+  const melody=[523,659,784,659,784,1047];
+  const times=[0,0.12,0.24,0.38,0.5,0.64];
+  melody.forEach((f,i)=>_tone(ctx,f,'sine',0.18,now+times[i],0.005,0.2));
+  // Uzun altta dolgunluk
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type='triangle'; o.frequency.setValueAtTime(130,now);
+  g.gain.setValueAtTime(0.1,now); g.gain.exponentialRampToValueAtTime(0.001,now+1.1);
+  o.start(now); o.stop(now+1.11);
+}
+
+// ── CONFETTI ───────────────────────────────────────────────────────────────
+function spawnConfetti(){
+  const colors=['#00e5ff','#ff00aa','#ffe600','#00ff88','#ff3355'];
+  for(let i=0;i<40;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.style.left=Math.random()*100+'vw';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.width=(6+Math.random()*10)+'px'; p.style.height=(6+Math.random()*10)+'px';
+    p.style.borderRadius=Math.random()>.5?'50%':'2px';
+    p.style.animationDuration=(1.2+Math.random()*1.6)+'s';
+    p.style.animationDelay=(Math.random()*.5)+'s';
+    document.body.appendChild(p);
+    p.addEventListener('animationend',()=>p.remove());
+  }
+}
+</script>
+</body>
+</html>
